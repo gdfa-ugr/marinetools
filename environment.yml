@@ -1,0 +1,19 @@
+name: marinetools
+channels:
+  - conda-forge
+dependencies:
+  - python=3.8
+  - matplotlib
+  - scipy
+  - UTide
+  - cmocean
+  - xarray
+  - seaborn
+  - loguru
+  - glob2
+  - pandas
+  - numpy
+  - scikit-learn
+  - windrose
+  - conda-build
+  - ipykernel
