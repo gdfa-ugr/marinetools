@@ -17,3 +17,10 @@ dependencies:
   - windrose
   - conda-build
   - ipykernel
+  - openpyxl
+  - pydap
+  - netCDF4
+  - zarr
+  - cftime
+  - dask
+  - bottleneck

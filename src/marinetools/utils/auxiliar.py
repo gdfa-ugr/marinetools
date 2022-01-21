@@ -6,13 +6,14 @@ import pandas as pd
 import scipy.stats as st
 from marinetools.temporal import analysis
 from marinetools.temporal.fdist import statistical_fit as stf
-from matplotlib.dates import date2num, num2julian
-from scipy.interpolate import Rbf, griddata
-from scipy.optimize import minimize
 
 
 def nonstationary_ecdf(
-    data, variable, wlen=14 / 365.25, equal_windows=False, pemp=None
+    data: pd.DataFrame,
+    variable: str,
+    wlen: float = 14 / 365.25,
+    equal_windows: bool = False,
+    pemp: list = None,
 ):
     """Computes the empirical percentiles selecting a moving window
 
@@ -20,6 +21,7 @@ def nonstationary_ecdf(
         * data (pd.DataFrame): time series
         * variable (string): name of the variable
         * wlen (float): length of window in days. Defaults to 14 days.
+        * pemp (list, optional): given empirical percentiles
 
     Returns:
         * res (pd.DataFrame): values of the given non-stationary percentiles
@@ -56,7 +58,7 @@ def nonstationary_ecdf(
     return res, pemp
 
 
-def ecdf(df, variable, no_perc=False):
+def ecdf(df: pd.DataFrame, variable: str, no_perc: int or bool = False):
     """Computes the empirical cumulative distribution function
 
     Args:
@@ -76,7 +78,9 @@ def ecdf(df, variable, no_perc=False):
     return dfs
 
 
-def nonstationary_epdf(data, variable, wlen=14 / 365.25, no_values=14):
+def nonstationary_epdf(
+    data: pd.DataFrame, variable: str, wlen: float = 14 / 365.25, no_values: int = 14
+):
     """Computes the empirical percentiles selecting a moving window
 
     Args:
@@ -125,7 +129,7 @@ def nonstationary_epdf(data, variable, wlen=14 / 365.25, no_values=14):
     return pdf_
 
 
-def epdf(df, variable, no_values=14):
+def epdf(df: pd.DataFrame, variable: str, no_values: int = 14):
     """Computes the empirical probability distribution function
 
     Args:
@@ -174,12 +178,15 @@ def acorr(data, maxlags=24):
     return lags, c_
 
 
-def str2fun(param, var_=None):
-    """[summary]
+def str2fun(param: dict, var_: str = None):
+    """Create an object of scipy.stats function given a string with the name
 
     Args:
-        param (dict): [description]
-        var_ (str): [description]
+        * param (dict): dictionary with parameters
+        * var_ (str): name of the variable
+
+    Return:
+        * The input dictionary updated
     """
 
     if var_ is None:
@@ -200,17 +207,16 @@ def str2fun(param, var_=None):
     return param
 
 
-def pre_ensemble_plot(models, param, var_, fname=None):
-    """[summary]
+def pre_ensemble_plot(models: list, param: dict, var_: str):
+    """Compute the ppf, mean and std of RCP-GCM models given
 
     Args:
-        models ([type]): [description]
-        param ([type]): [description]
-        var_ ([type]): [description]
-        fname ([type], optional): [description]. Defaults to None.
+        * models (list): name of models as saved in param
+        * param (dict): statistical parameters of all the models
+        * var_ (str): name of the variable
 
     Returns:
-        [type]: [description]
+        ppfs (pd.DataFrame): ppf, mean and std
     """
 
     probs = [0.05, 0.01, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99, 0.995]
@@ -238,11 +244,11 @@ def pre_ensemble_plot(models, param, var_, fname=None):
     return ppfs
 
 
-def mkdir(path):
-    """[summary]
+def mkdir(path: str):
+    """Create a folder with path name if not exists
 
     Args:
-        path ([type]): [description]
+        path (str): name of the new folder
     """
     if path != "":
         os.makedirs(path, exist_ok=True)

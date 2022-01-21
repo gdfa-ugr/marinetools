@@ -4,11 +4,11 @@ import numpy as np
 import pandas as pd
 
 
-def npy2json(params):
-    """[summary]
+def npy2json(params: dict):
+    """Convert a dictionary with numpy ndarray into json dictionary and save the file
 
     Args:
-        params ([type]): [description]
+        params (dict): parameters to be transformed into json
     """
     for key in params.keys():
         if isinstance(params[key], np.ndarray):
@@ -30,18 +30,19 @@ def npy2json(params):
     return
 
 
-def to_json(params, fname, npArraySerialization=False):
+def to_json(params: dict, file_name: str, npArraySerialization: bool = False):
     """Saves to a json file
 
     Args:
         - params (dict): data to be saved
-        - fname (string): path of the file
+        - file_name (string): path of the file
+        - npArraySerialization (bool): applied a serialization. True or False.
 
     Return:
         - None
     """
 
-    with open(f"{str(fname)}.json", "w") as f:
+    with open(f"{str(file_name)}.json", "w") as f:
         if npArraySerialization:
             for key in params.keys():
                 if isinstance(params[key], dict):
@@ -60,28 +61,31 @@ def to_json(params, fname, npArraySerialization=False):
     return
 
 
-def to_csv(data, fname, compression="infer"):
+def to_csv(data: pd.DataFrame, file_name: str, compression: str = "infer"):
     """Saves to a csv file
 
     Args:
         - data (pd.DataFrame): data to be saved
-        - fname (str): path of the file
-        - compression (str, opt): define the
+        - file_name (str): path of the file
+        - compression (str, opt): define the type of compression if required
 
     Return:
         - None
     """
-    if not isinstance(data, pd.DataFrame):
-        data.to_frame().to_csv(str(fname) + ".csv", compression=compression)
-
-    if ".zip" in str(fname):
-        data.to_csv(str(fname) + ".csv", compression="zip")
+    if not ".csv" in file_name:
+        file_name = str(file_name) + ".csv"
     else:
-        data.to_csv(str(fname) + ".csv")
+        file_name = str(file_name)
+
+    if ".zip" in file_name:
+        data.to_csv(file_name, compression="zip")
+    else:
+        data.to_csv(file_name, compression=compression)
+
     return
 
 
-def to_npy(data, fname):
+def to_npy(data: np.ndarray, file_name: str):
     """Saves to a numpy file
 
     Args:
@@ -91,26 +95,29 @@ def to_npy(data, fname):
     Return:
         - None
     """
-    np.save(f"{str(fname)}.npy", data)
+    np.save(f"{str(file_name)}.npy", data)
     return
 
 
-def to_xlsx(data, fname):
+def to_xlsx(data: pd.DataFrame, file_name: str):
     """Saves to an excel file
 
     Args:
         - params (dict): data to be saved
-        - fname (string): path of the file
+        - file_name (string): path of the file
 
     Return:
         - None
     """
 
-    wbook, wsheet = cwriter(str(fname) + ".xlsx")
-    wsheet = wconfig(wsheet, data)
+    wbook, wsheet = cwriter(str(file_name) + ".xlsx")
 
     # Writting the header
-    wsheet.write(0, 0, data.index.name, formats(wbook, "header"))
+    if data.index.name is not None:
+        wsheet.write(0, 0, data.index.name, formats(wbook, "header"))
+    else:
+        wsheet.write(0, 0, "Index", formats(wbook, "header"))
+
     for col_num, value in enumerate(data.columns.values):
         wsheet.write(0, col_num + 1, value, formats(wbook, "header"))
 
@@ -128,83 +135,22 @@ def to_xlsx(data, fname):
     return
 
 
-def cwriter(fout):
+def cwriter(file_out: str):
     """Create a new file with the book and sheet for excel
 
     Args:
-        - fout (string): path of the file
+        - file_out (string): path of the file
 
     Returns:
         - wbook (objects): excel book
         - wsheet (objects): excel sheet
     """
-    writer = pd.ExcelWriter(fout, engine="xlsxwriter")
+    writer = pd.ExcelWriter(file_out, engine="xlsxwriter")
     df = pd.DataFrame([0])
-    df.to_excel(writer, sheet_name="Sheet1", startrow=1, header=False)
+    df.to_excel(writer, index=False, sheet_name="Sheet1", startrow=1, header=False)
     wsheet = writer.sheets["Sheet1"]
     wbook = writer.book
     return wbook, wsheet
-
-
-def wconfig(wsheet, data):
-    """Configures the cell size and protects it
-
-    Args:
-        - wsheet (object): excel sheet
-        - data (pd.DataFrame): data
-
-    Returns:
-        - wsheet (object): excel sheet
-    """
-    size = np.max([12, len(data.index.name) * 2])
-    wsheet.set_column(cols(0), size)
-
-    for i, j in enumerate(data.columns):
-        col = cols(i + 1)
-        size = np.max([12, len(j) * 2])
-        wsheet.set_column(col, size)
-
-    return wsheet
-
-
-def cols(col):
-    """Associates the name of a variable for a given column
-
-    Args:
-        - col (int): number of the column
-
-    Returns:
-        - out (string): name of the column
-    """
-    out = {
-        0: "A:A",
-        1: "B:B",
-        2: "C:C",
-        3: "D:D",
-        4: "E:E",
-        5: "F:F",
-        6: "G:G",
-        7: "H:H",
-        8: "I:I",
-        9: "J:J",
-        10: "K:K",
-        11: "L:L",
-        12: "M:M",
-        13: "N:N",
-        14: "O:O",
-        15: "P:P",
-        16: "Q:Q",
-        17: "R:R",
-        18: "S:S",
-        19: "T:T",
-        20: "U:U",
-        21: "V:V",
-        22: "W:W",
-        23: "X:X",
-        24: "Y:Y",
-        25: "Z:Z",
-    }
-    return out[col]
 
 
 def formats(wbook, style):
@@ -245,7 +191,7 @@ def formats(wbook, style):
     return wbook.add_format(fmt[style])
 
 
-def as_float_bool(obj):
+def as_float_bool(obj: dict):
     """Checks the value of each key of the dict passed
     Args:
         * obj (dict): The object to decode
@@ -269,24 +215,24 @@ def as_float_bool(obj):
     return obj
 
 
-def to_txt(fname, data, format="%9.3f"):
-    """[summary]
+def to_txt(file_name: str, data: pd.DataFrame, format: str = "%9.3f"):
+    """Save data to a txt
 
     Args:
-        fname ([type]): [description]
-        data ([type]): [description]
-        format:
+        * file_name (str): path where save the file
+        * data (pd.DataFrame): raw data
+        * format: save format
     """
-    np.savetxt(str(fname), data, delimiter="", fmt=format)
+    np.savetxt(str(file_name), data, delimiter="", fmt=format)
     return
 
 
-def to_netcdf(data, path):
-    """[summary]
+def to_netcdf(data: pd.DataFrame, path: str):
+    """Save data to netcdf file
 
     Args:
-        data ([type]): [description]
-        path ([type]): [description]
+        data (pd.DataFrame): raw timeseries
+        path (str): path where save the file
     """
     data.to_netcdf(str(path) + ".nc")
     return

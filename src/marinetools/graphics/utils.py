@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 
 
-def show(fname=None, res=600):
+def show(file_name: str = None, res: int = 600):
     """Saves into a file or displays on the screen the result of a plot
 
     Args:
@@ -12,23 +12,33 @@ def show(fname=None, res=600):
         * Displays on the screen the figure or saves it into a file
     """
 
-    if not fname:
+    if not file_name:
         plt.show()
-    elif fname == ("to_axes"):
+    elif file_name == ("to_axes"):
         pass
     else:
-        plt.savefig(f"{fname}.pdf", dpi=res, bbox_inches="tight")
+        plt.savefig(f"{file_name}.png", dpi=res, bbox_inches="tight")
         plt.close()
     return
 
 
-def handle_axis(ax, row_plots=1, col_plots=1, dim=2, figsize=(5, 5)):
+def handle_axis(
+    ax,
+    row_plots: int = 1,
+    col_plots: int = 1,
+    dim: int = 2,
+    figsize: tuple = (5, 5),
+    kwargs: dict = {},
+):
     """Creates the matplotlib.axis of the figure if it is required or nothing if it is given
 
     Args:
         * ax (matplotlib.axis): axis for the plot.
-        * dim (int, optional): no. of axis. Defaults to 2.
-        * figsize
+        * row_plots (int, optional): no. of row axis. Defaults to 1.
+        * col_plots (int, optional): no. of row axis. Defaults to 1.
+        * dim (int, optional): no. of dimensions. Defaults to 2.
+        * figsize: as matplotlib
+        * kwargs: as matplotlib
 
     Returns:
         * Same as the arguments
@@ -36,7 +46,7 @@ def handle_axis(ax, row_plots=1, col_plots=1, dim=2, figsize=(5, 5)):
 
     if not ax:
         if dim == 2:
-            fig, ax = plt.subplots(row_plots, col_plots, figsize=figsize)
+            _, ax = plt.subplots(row_plots, col_plots, figsize=figsize, **kwargs)
         else:
             fig = plt.figure()
             ax = fig.gca(projection="3d")
