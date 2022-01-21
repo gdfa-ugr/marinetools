@@ -1,41 +1,37 @@
 import json
-import sys
-import warnings
-from datetime import datetime, timedelta
+from datetime import timedelta
 
-import glob2
 import numpy as np
 import pandas as pd
-import xarray as xr
+from loguru import logger
 from matplotlib import dates
 from scipy.io import loadmat as ldm
 
 
-def keys_as_int(obj):
-    """[summary]
+def keys_as_int(obj: dict):
+    """Convert the keys at reading json file into a dictionary of integers
 
     Args:
-        obj ([type]): [description]
+        obj (dict):input dictionary
 
     Returns:
-        [type]: [description]
+        out: the dictionary
     """
-    if isinstance(obj, dict):
-        try:
-            out = {int(k): v for k, v in obj.items()}
-        except:
-            out = {k: v for k, v in obj.items()}
+    try:
+        out = {int(k): v for k, v in obj.items()}
+    except:
+        out = {k: v for k, v in obj.items()}
     return out
 
 
-def keys_as_nparray(obj):
-    """[summary]
+def keys_as_nparray(obj: dict):
+    """Convert the keys at reading json file into a dictionary of np.arrays
 
     Args:
-        obj ([type]): [description]
+        obj (dict): input dictionary
 
     Returns:
-        [type]: [description]
+        out: the dictionary
     """
     if isinstance(obj, dict):
         out = {}
@@ -65,7 +61,7 @@ def keys_as_nparray(obj):
     return out
 
 
-def rjson(fname, parType=None):
+def rjson(file_name: str, parType: str = None):
     """Reads data from json files
 
     Args:
@@ -77,14 +73,14 @@ def rjson(fname, parType=None):
         - data (pd.DataFrame): the read data
     """
     if parType == "td":
-        params = json.load(open(fname + ".json", "r"), object_hook=keys_as_nparray)
+        params = json.load(open(file_name + ".json", "r"), object_hook=keys_as_nparray)
     else:
-        params = json.load(open(fname + ".json", "r"), object_hook=keys_as_int)
+        params = json.load(open(file_name + ".json", "r"), object_hook=keys_as_int)
 
     return params
 
 
-def PdE(fname):
+def PdE(file_name: str):
     """Reads data from PdE files
 
     Args:
@@ -93,7 +89,7 @@ def PdE(fname):
     Returns:
         - data (pd.DataFrame): the read data
     """
-    with open(fname) as file_:
+    with open(file_name) as file_:
         content = file_.readlines()
 
     for ind_, line_ in enumerate(content):
@@ -101,7 +97,7 @@ def PdE(fname):
             skiprows = ind_ + 2
 
     data = pd.read_table(
-        fname,
+        file_name,
         delimiter="\s+",
         parse_dates={"date": [0, 1, 2, 3]},
         index_col="date",
@@ -117,33 +113,41 @@ def PdE(fname):
 
 
 def csv(
-    filename,
-    ts=False,
+    file_name: str,
+    ts: bool = False,
     date_parser=None,
-    sep=",",
-    non_natural_date=False,
-    no_data_values=-999,
+    sep: str = ",",
+    encoding: str = "utf-8",
+    non_natural_date: bool = False,
+    no_data_values: int = -999,
 ):
     """Reads a csv file
 
     Args:
-        - filename (string): filename of data
+        - file_name (string): filename of data
         - ts (boolean, optional): stands for a time series
         (the index is a datetime index) or not
         - date_parser: required for special datetime formats
         - sep: separator
-        - non_natural days: some models return 30 days/month which generate problems with real timeseries.
+        - encoding: type of encoding
+        - non_natural days: some models return 30 days/month which generate problems with real timeseries
+        - no_data_values: integer with values that will be considered as nan
 
-    Retunrs:
+    Returns:
         - data (pd.DataFrame): the read data
     """
+    if not any(item in str(file_name) for item in ["txt", "csv", "zip"]):
+        filename = str(file_name) + ".csv"
+    else:
+        filename = str(file_name)
+
     if non_natural_date:
         ts = False
 
     if not ts:
-        if "zip" in str(filename):
+        if "zip" in filename:
             data = pd.read_csv(
-                str(filename) + ".csv",
+                filename,
                 sep=sep,
                 index_col=[0],
                 compression="zip",
@@ -152,10 +156,16 @@ def csv(
         else:
             try:
                 data = pd.read_csv(
-                    str(filename) + ".csv", sep=sep, index_col=[0], engine="python"
+                    filename,
+                    sep=sep,
+                    index_col=[0],
+                    engine="python",
+                    encoding=encoding,
                 )
             except:
-                data = pd.read_csv(str(filename) + ".csv", sep=sep, engine="python")
+                data = pd.read_csv(
+                    filename, sep=sep, engine="python", encoding=encoding
+                )
 
         if non_natural_date:
             start = pd.to_datetime(data.index[0])
@@ -166,19 +176,29 @@ def csv(
             ]
             data.index = index_
     else:
-        if "zip" in str(filename):
-            data = pd.read_csv(
-                str(filename) + ".csv",
-                sep=sep,
-                parse_dates=[0],
-                index_col=[0],
-                compression="zip",
-                date_parser=date_parser,
-            )
+        if "zip" in filename:
+            try:
+                data = pd.read_csv(
+                    filename,
+                    sep=sep,
+                    parse_dates=[0],
+                    index_col=[0],
+                    compression="zip",
+                    date_parser=date_parser,
+                )
+            except:
+                data = pd.read_csv(
+                    filename,
+                    sep=sep,
+                    parse_dates=[0],
+                    index_col=[0],
+                    date_parser=date_parser,
+                )
+                logger.info("{}, It is not a zip file.".format(str(filename) + ".csv"))
         else:
             try:
                 data = pd.read_csv(
-                    str(filename) + ".csv",
+                    filename,
                     sep=sep,
                     parse_dates=["date"],
                     index_col=["date"],
@@ -186,7 +206,7 @@ def csv(
                 )
             except:
                 data = pd.read_csv(
-                    str(filename) + ".csv",
+                    filename,
                     sep=sep,
                     parse_dates=[0],
                     index_col=[0],
@@ -196,40 +216,48 @@ def csv(
     return data
 
 
-def npy(fname):
+def npy(file_name: str):
     """Reads data from a numpy file
 
     Args:
-        - fname (string): filename of data
+        - file_name (string): filename of data
 
     Returns:
         - data (pd.DataFrame): the read data
     """
     try:
-        data = np.load(f"{fname}.npy")
+        data = np.load(f"{file_name}.npy")
     except:
-        data = np.load(f"{fname}.npy", allow_pickle=True)
+        data = np.load(f"{file_name}.npy", allow_pickle=True)
         if not isinstance(data, pd.DataFrame):
             data = {i: data.item().get(i) for i in data.item()}
 
     return data
 
 
-def xlsx(fname):
+def xlsx(file_name: str, sheet_name: str = 0):
     """Reads xlsx files
 
     Args:
-        - fname (string): filename of data
+        - file_name (string): filename of data
+        - sheet_name (string): name of sheet
 
     Returns:
         - data (pd.DataFrame): the read data
     """
-    xlsx = pd.ExcelFile(fname + ".xlsx")
-    data = pd.read_excel(xlsx, index_col=0)
+    xlsx = pd.ExcelFile(file_name + ".xlsx")
+    data = pd.read_excel(xlsx, sheet_name=sheet_name, index_col=0)
     return data
 
 
-def netcdf(fname, variables=None, latlon=None, depth=None, glob=False):
+def netcdf(
+    file_name: str,
+    variables: str = None,
+    latlon: list = None,
+    depth: float = None,
+    time_series: bool = True,
+    glob: bool = False,
+):
     """Reads netCDF4 files
 
     Args:
@@ -240,12 +268,15 @@ def netcdf(fname, variables=None, latlon=None, depth=None, glob=False):
     Returns:
         - df (pd.DataFrame): the read data
     """
+
+    import xarray as xr
+
     # data = Dataset(fname + '.nc', mode='r', format='NETCDF4')
     if not glob:
-        data = xr.open_dataset(fname + ".nc")
+        data = xr.open_dataset(file_name + ".nc")
     else:
         try:
-            data = xr.open_mfdataset(fname + "/*.nc")
+            data = xr.open_mfdataset(file_name)
         except:
             # try:
             #     files_ = glob2.glob(fname)
@@ -288,41 +319,47 @@ def netcdf(fname, variables=None, latlon=None, depth=None, glob=False):
         # data.index = data.to_datetimeindex(unsafe=False)
     else:
         # TODO: hacer el nearest en otra funcion
-        df = data.to_dataframe()  # TODO: change with more than one variable
-        if not df.index.dtype == "<M8[ns]":
-            times, goodPoints = [], []
-            for index, time in enumerate(data.indexes["time"]):
-                try:
-                    times.append(time._to_real_datetime())
-                    goodPoints.append(index)
-                except:
-                    continue
-            if variables is not None:
-                pd.DataFrame(
-                    data.to_dataframe()[variables].values[goodPoints],
-                    index=times,
+        # df = data.to_dataframe()  # TODO: change with more than one variable
+        if time_series:
+            if not data.indexes["time"].dtype == "datetime64[ns]":
+                times, goodPoints = [], []
+                for index, time in enumerate(data.indexes["time"]):
+                    try:
+                        times.append(time._to_real_datetime())
+                        goodPoints.append(index)
+                    except:
+                        continue
+                if variables is not None:
+                    data = pd.DataFrame(
+                        data.to_dataframe()[variables].values[goodPoints],
+                        index=times,
+                        columns=[variables],
+                    )
+                else:
+                    pd.DataFrame(data.to_dataframe().values[goodPoints], index=times)
+            else:
+                data = pd.DataFrame(
+                    data.to_dataframe()[variables].values,
+                    index=data.indexes["time"],
                     columns=[variables],
                 )
-            else:
-                pd.DataFrame(data.to_dataframe().values[goodPoints], index=times)
-        nearestLonLat = None
 
     return data
 
 
-def mat(fname, var_="x", julian=False):
+def mat(file_name: str, var_: str = "x", julian: bool = False):
     """[summary]
 
     Args:
-        fname ([type]): [description]
+        file_name ([type]): [description]
         var_ (str, optional): [description]. Defaults to "x".
         julian (bool, optional): [description]. Defaults to False.
 
     Returns:
-        [type]: [description]
+        df (pd.DataFrame): the readed timeseries
     """
 
-    data = ldm(fname)
+    data = ldm(file_name)
     if not julian:
         date = data[var_][:, 0] + dates.date2num(
             np.datetime64("0000-12-31")

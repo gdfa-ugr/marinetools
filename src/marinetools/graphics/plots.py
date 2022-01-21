@@ -1,16 +1,12 @@
 import datetime
-from itertools import product
 
 import cmocean
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import scipy.stats as st
 from marinetools.graphics.utils import handle_axis, labels, show
-from marinetools.temporal.analysis import storm_properties
 from marinetools.temporal.fdist import statistical_fit as stf
-from marinetools.temporal.fdist.copula import Copula
 from marinetools.utils import auxiliar
 from pandas.plotting import register_matplotlib_converters
 
@@ -38,14 +34,14 @@ plt.rc("font", family="serif", size=10)
 params = {"text.latex.preamble": [r"\usepackage{amsmath}"]}
 
 
-def timeseries(data, variable, ax=None, fname=None):
+def timeseries(data: pd.DataFrame, variable: str, ax=None, file_name: str = None):
     """Plots the time series of the variable
 
     Args:
         * data (pd.DataFrame): time series
         * variable (string): variable
         * ax (matplotlib.axis, optional): axis for the plot or None. Defaults to None.
-        * fname (None or string, optional): name of the file to save the plot or None to see plots on the screen. Defaults to None.
+        * file_name (None or string, optional): name of the file to save the plot or None to see plots on the screen. Defaults to None.
 
     Returns:
         * ax (matplotlib.axis): axis for the plot or None
@@ -58,18 +54,29 @@ def timeseries(data, variable, ax=None, fname=None):
     except:
         ax.set_ylabel(variable)
 
-    show(fname)
+    show(file_name)
     return ax
 
 
-def plot_cdf(data, var, ax=None, fname=None, seaborn=False, legend=False, label=None):
+def plot_cdf(
+    data: pd.DataFrame,
+    var: str,
+    ax=None,
+    file_name: str = None,
+    seaborn: bool = False,
+    legend: str = False,
+    label: str = None,
+):
     """Plots the cumulative density function of data
 
     Args:
         * data (pd.DataFrame): raw time series
         * var (string): name of the variable
         * ax (matplotlib.axis, optional): axis for the plot or None. Defaults to None.
-        * fname (None or string, optional): name of the file to save the plot or None to see plots on the screen. Defaults to None.
+        * file_name (None or string, optional): name of the file to save the plot or None to see plots on the screen. Defaults to None.
+        * seaborn (bool): True or False if seaborn cdf plot is required
+        * legend (bool): True if legend want to be plot
+        * label (str): name of the variable
 
     Returns:
         * ax (matplotlib.axis): axis for the plot or None
@@ -95,19 +102,18 @@ def plot_cdf(data, var, ax=None, fname=None, seaborn=False, legend=False, label=
     if legend:
         ax.legend()
 
-    show(fname)
-
+    show(file_name)
     return ax
 
 
-def boxplot(data, variable, ax=None, fname=None):
+def boxplot(data: pd.DataFrame, variable: str, ax=None, file_name: str = None):
     """Draws a box-plot of the data
 
     Args:
         * data (pd.DataFrame): raw time series
         * variable (string): name of the variable
         * ax (matplotlib.axis, optional): axis for the plot or None. Defaults to None.
-        * fname (None or string, optional): name of the file to save the plot or None to see plots on the screen. Defaults to None.
+        * file_name (None or string, optional): name of the file to save the plot or None to see plots on the screen. Defaults to None.
 
     Returns:
         * ax (matplotlib.axis): axis for the plot or None
@@ -122,13 +128,13 @@ def boxplot(data, variable, ax=None, fname=None):
     return ax
 
 
-def scatter_error_dependencies(df_dt, variables, fname=None):
+def scatter_error_dependencies(df_dt: dict, variables: list, file_name: str = None):
     """Draws the scatter plot of data before and after the computation of the temporal dependency
 
     Args:
         * df_dt (dict): parameters of the temporal dependency package
         * variables (list): names of the variables
-        * fname (None or string, optional): name of the file to save the plot or None to see plots on the screen. Defaults to None.
+        * file_name (None or string, optional): name of the file to save the plot or None to see plots on the screen. Defaults to None.
 
     Returns:
         * ax (matplotlib.axis): axis for the plot or None
@@ -158,19 +164,17 @@ def scatter_error_dependencies(df_dt, variables, fname=None):
     ax.set_xlabel(r" Observed ($\Phi^{-1}(F_{\zeta}(\zeta))$")
     ax.set_ylabel(r" Modeled ($\Phi^{-1}(F_{\zeta}(\zeta))$")
     ax.legend(loc=4, title=r"$\zeta$")
-    show(fname)
+    show(file_name)
     return ax
 
 
-def corr(data, lags=24, ax=None, fname=None):
+def corr(data: pd.DataFrame, lags: int = 24, ax=None, file_name: str = None):
     """Plots the correlation of between time series
 
     Args:
-        * x (np.ndarray): time series
-        * xs (np.ndarray): time series
-        * var (string): name of the variable for the plot
+        * data (pd. DataFrame): timeseries
         * lags (int): maximum lag time (hours). Defaults to 48 hours.
-        * fname (None or string, optional): name of the file to save the plot or None to see plots on the screen. Defaults to None.
+        * file_name (None or string, optional): name of the file to save the plot or None to see plots on the screen. Defaults to None.
 
     Returns:
         * ax (matplotlib.axis): axis for the plot or None
@@ -183,12 +187,12 @@ def corr(data, lags=24, ax=None, fname=None):
     ax.set_ylabel(r"Normalized autocorrelation")
     ax.grid(True)
     ax.legend()
-    show(fname)
+    show(file_name)
 
     return ax
 
 
-def joint_plot(data, varx, vary, ax=None):
+def joint_plot(data: pd.DataFrame, varx: str, vary: str, ax=None):
     """Plots the joint probability function of data
 
     Args:
@@ -208,14 +212,16 @@ def joint_plot(data, varx, vary, ax=None):
     return ax
 
 
-def bivariate_ensemble_pdf(df_sim, df_obs, varp, fname=None):
+def bivariate_ensemble_pdf(
+    df_sim: pd.DataFrame, df_obs: dict, varp: list, file_name: str = None
+):
     """Plots together the bivariate probability density function of several time series observations and one simulation
 
     Args:
         * df_sim (pd.DataFrame): raw time series
         * df_obs (dict): each element is an observed time series
         * varp (list): names of the variables
-        * fname (None or string, optional): name of the file to save the plot or None to see plots on the screen. Defaults to None.
+        * file_name (None or string, optional): name of the file to save the plot or None to see plots on the screen. Defaults to None.
 
     Returns:
         * ax (matplotlib.axis): axis for the plot or None
@@ -259,12 +265,18 @@ def bivariate_ensemble_pdf(df_sim, df_obs, varp, fname=None):
         if column >= 3:
             column = 0
             row += 1
-    show(fname)
+    show(file_name)
     return
 
 
 def bivariate_pdf(
-    df_sim, df_obs, variables, bins=None, levels=None, ax=None, fname=None
+    df_sim: pd.DataFrame,
+    df_obs: pd.DataFrame,
+    variables: list,
+    bins: int = None,
+    levels: list = None,
+    ax=None,
+    file_name: str = None,
 ):
     """Plots the bivariate distribution function between observed and simulated time series for comparison
 
@@ -291,9 +303,7 @@ def bivariate_pdf(
     if levels is None:
         levels = np.linspace(np.max(nn) / 12, np.max(nn), 12)
 
-    # cs = ax.contourf(nx, ny, nn, alpha=0.25, levels=np.append(0, levels))
-    min_ = np.min(nn)
-    max_ = np.max(nn)
+    min_, max_ = np.min(nn), np.max(nn)
 
     ax[0].imshow(
         nn,
@@ -310,10 +320,7 @@ def bivariate_pdf(
         df_sim[variables[0]], df_sim[variables[1]], bins=[nx_, ny_], density=True
     )
     ny, nx = np.meshgrid(ny[:-1] + np.diff(ny) / 2.0, nx[:-1] + np.diff(nx) / 2.0)
-    # CS = plt.contour(nx, ny, nn, levels=levels)
-    # plt.grid(True)
-    # plt.clabel(CS, inline=1, fontsize=10)
-    cs = ax[1].imshow(
+    ax[1].imshow(
         nn_,
         extent=[np.min(ny), np.max(ny), np.min(nx), np.max(nx)],
         vmin=min_,
@@ -324,27 +331,31 @@ def bivariate_pdf(
     ax[1].set_xlabel(labels(variables[1]))
     ax[1].set_yticklabels([])
 
-    # cbar = plt.colorbar(cs)
-    # cbar.ax.set_ylabel("Mass probability")
-    show(fname)
+    show(file_name)
+
+    # R2 = 1 - np.sum((np.ravel(nn) - np.ravel(nn_)) ** 2) / np.sum(
+    #     (np.ravel(nn_) - np.mean(np.ravel(nn_))) ** 2
+    # )
+    # print(R2)
 
     return
 
 
 def nonstationary_cdf(
-    data,
-    variable,
-    param=None,
-    daysWindowsLength=14,
-    equal_windows=False,
+    data: pd.DataFrame,
+    variable: str,
+    param: dict = None,
+    daysWindowsLength: int = 14,
+    equal_windows: bool = False,
     ax=None,
-    log=False,
-    fname=None,
-    legend=True,
-    legend_loc="right",
-    title=None,
-    date_axis=False,
-    pemp=None,
+    log: bool = False,
+    file_name: str = None,
+    label: str = None,
+    legend: bool = True,
+    legend_loc: str = "right",
+    title: str = None,
+    date_axis: bool = False,
+    pemp: list = None,
 ):
     """Plots the time variation of given percentiles of data and theoretical function if provided
 
@@ -353,7 +364,16 @@ def nonstationary_cdf(
         * variable (string): name of the variable to be adjusted
         * param (dict, optional): the parameters of the the theoretical model if they are also plotted.
         * daysWindowsLength (int, optional): period of windows length for making the non-stationary empirical distribution function. Defaults to 14 days.
-        * fname (string, optional): name of the file to save the plot or None to see plots on the screen. Defaults to None.
+        * equal_windows (bool): use the windows for the ecdf of total data and timestep
+        * ax: matplotlib.ax
+        * log: logarhitmic scale
+        * file_name (string, optional): name of the file to save the plot or None to see plots on the screen. Defaults to None.
+        * label: string with the label
+        * legend: plot the legend
+        * legend_loc: locate the legend
+        * title: draw the title
+        * date_axis: create a secondary axis with time
+        * pemp: list with percentiles to be plotted
 
     Returns:
         * ax (matplotlib.axis): axis for the plot or None
@@ -516,7 +536,9 @@ def nonstationary_cdf(
     if isinstance(title, str):
         ax.set_title(title, color="k", fontweight="bold")
 
-    ax.set_ylabel(labels(variable))
+    if not label:
+        label = labels(variable)
+    ax.set_ylabel(label)
     ax.set_xlabel("Normalized period")
     if date_axis:
         ax2 = ax.twiny()
@@ -556,6 +578,9 @@ def nonstationary_cdf(
             ),
             minor=False,
         )
+        # 16 is a slight approximation since months differ in number of days.
+        # ax2.xaxis.set_minor_locator(np.array([1/13, 2/13, 3/13, 4/13, 5/13, 6/13, 7/13, 8/13, 9/13, 10/13, 11/13, 12/13]))
+        # ax2.xaxis.set_major_formatter(ticker.NullFormatter())
 
         # Hide major tick labels
         ax2.set_xticklabels("")
@@ -595,12 +620,14 @@ def nonstationary_cdf(
         ax.set_position(
             [box.x0, box.y0 + box.height * 0.1, box.width * 0.6, box.height * 0.9]
         )
-    show(fname)
+    show(file_name)
 
     return ax
 
 
-def nonstationary_cdf_ensemble(data, variable, ax, marker=".", fname=None):
+def nonstationary_cdf_ensemble(
+    data: pd.DataFrame, variable: str, ax=None, marker: str = ".", file_name: str = None
+):
     """Plots the time variation of given percentiles of data and the theoretical function if provided
 
     Args:
@@ -608,7 +635,7 @@ def nonstationary_cdf_ensemble(data, variable, ax, marker=".", fname=None):
         * variable (string): name of the variable to be adjusted
         * ax (matplotlib.axis): axis for the plot
         * marker (string): symbol feature of the plot
-        * fname (None or string, optional): name of the file to save the plot or None to see plots on the screen. Defaults to None.
+        * file_name (None or string, optional): name of the file to save the plot or None to see plots on the screen. Defaults to None.
 
     Returns:
         * ax (matplotlib.axis): axis for the plot
@@ -646,23 +673,22 @@ def nonstationary_cdf_ensemble(data, variable, ax, marker=".", fname=None):
 
     ax.set_ylabel(labels(variable))
     ax.set_xlabel("Normalized year")
+    show(file_name)
 
     return ax
 
 
 def pdf_n_i(
-    df_obs,
-    ns,
-    param=None,
-    variable=None,
-    nbins=12,
-    wlen=14 / 365.25,
-    fname=None,
-    legend=True,
-    title=None,
-    alpha=0.01,
+    df_obs: pd.DataFrame,
+    ns: list,
+    param: dict = None,
+    variable: str = None,
+    nbins: int = 12,
+    wlen: float = 14 / 365.25,
+    file_name: str = None,
+    title: str = None,
 ):
-    """[summary]
+    """Compute the pdf at n-times
 
     Args:
         ns ([type]): [description]
@@ -672,7 +698,6 @@ def pdf_n_i(
         fname ([type], optional): [description]. Defaults to None.
         legend (bool, optional): [description]. Defaults to True.
         title ([type], optional): [description]. Defaults to None.
-        alpha (float, optional): [description]. Defaults to 0.01.
 
     Returns:
         [type]: [description]
@@ -704,14 +729,11 @@ def pdf_n_i(
                 mask = (df_obs["n"] <= max_) & (df_obs["n"] >= min_)
 
             label_ = "F(n: " + str(j) + ")"
-            # emp = auxiliar.ecdf(df_obs.loc[mask], variable)
-            # axs[0].plot(emp[variable], emp["prob"], label=label_)
             x = np.linspace(0, 1, nbins)
             emp = df_obs[variable].loc[mask].quantile(q=x).values
 
             axs[0].plot(emp, x, ".", color=colors[i], label=label_)
 
-            # emp = auxiliar.epdf(df_obs.loc[mask], variable)
             axs[1].plot(
                 emp[1:], np.diff(x) / np.diff(emp), ".", color=colors[i], label=label_
             )
@@ -724,18 +746,18 @@ def pdf_n_i(
     axs[1].set_ylabel("probability")
     axs[1].set_xlabel(labels(variable))
 
-    show(fname)
+    show(file_name)
 
     return
 
 
 def wrose(
-    wd,
-    ws,
-    title="Wave rose",
-    var_name="Wave height (m)",
-    bins=[0, 0.25, 0.5, 1.5, 2.5],
-    fname=None,
+    wd: np.ndarray,
+    ws: np.ndarray,
+    title: str = "Wave rose",
+    var_name: str = "Wave height (m)",
+    bins: list = [0, 0.25, 0.5, 1.5, 2.5],
+    file_name: str = None,
 ):
     """Draws a wind or wave rose
 
@@ -743,7 +765,9 @@ def wrose(
         * wd (pd.DataFrame): time series with the circular variable
         * ws (pd.DataFrame): time series with the linear variable
         * title (str, optional): set the title of the rose. Defaults to 'Wave rose'.
-        * fname (None or string, optional): name of the file to save the plot or None to see plots on the screen. Defaults to None.
+        * var_name (str, optional): name of the mean variable. Default 'Wave height (m)'
+        * bins: value of segments for variable
+        * file_name (None or string, optional): name of the file to save the plot or None to see plots on the screen. Defaults to None.
 
     Returns:
         * ax (matplotlib.axis): axis for the plot or None
@@ -765,7 +789,7 @@ def wrose(
     )
     fig.subplots_adjust(top=0.9)
 
-    ax.set_xticklabels(['E', 'NE','N', 'NW', 'W', 'SW', 'S', 'SE'])
+    ax.set_xticklabels(["E", "NE", "N", "NW", "W", "SW", "S", "SE"])
 
     if isinstance(title, str):
         ax.text(
@@ -778,7 +802,7 @@ def wrose(
         )
 
     ax.set_legend(title=var_name)
-    show(fname)
+    show(file_name)
     return ax
 
 
@@ -846,11 +870,7 @@ def heatmap(data, param, type_, fname=None):
     # Plot the heatmap
     im = ax.imshow(data)
 
-    # Create colorbar
-    # cbar = ax.figure.colorbar(im, ax=ax)
-    # cbar.ax.set_ylabel("Coefficients", rotation=-90, va="bottom")
-
-    # We want to show all ticks...
+    # We want to show all ticks ...
     ax.set_xticks(np.arange(np.asarray(data).shape[1]))
     ax.set_yticks(np.arange(np.asarray(data).shape[0]))
     # ... and label them with the respective list entries.

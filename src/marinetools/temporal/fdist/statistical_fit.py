@@ -1,12 +1,10 @@
 import warnings
-from itertools import product
 
 import numpy as np
 import pandas as pd
 import scipy.stats as st
 from loguru import logger
 from marinetools.utils import auxiliar, read
-from matplotlib.pyplot import show
 from scipy.integrate import quad
 from scipy.optimize import differential_evolution, dual_annealing, minimize, shgo
 
@@ -29,7 +27,7 @@ along with MarineTools.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 
-def st_analysis(df, param):
+def st_analysis(df: pd.DataFrame, param: dict):
     """Fits stationary simple or mixed models
 
     Args:
@@ -41,12 +39,12 @@ def st_analysis(df, param):
 
     """
     par0 = []
-    percentiles = np.hstack([0, np.cumsum(param["ws_ps"])])
 
     df_sort = df[param["var"]].sort_values(ascending=True)
     p = np.linspace(0, 1, len(df_sort))
 
     if (param["basis_function"]["order"] == 0) and (param["reduction"] == False):
+        percentiles = np.hstack([0, np.cumsum(param["ws_ps"])])
         for i in param["fun"].keys():
             filtro = (p >= percentiles[i]) & (p <= percentiles[i + 1])
             par = param["fun"][i].fit(df_sort[filtro])
@@ -65,11 +63,14 @@ def st_analysis(df, param):
             par0 = np.hstack([par0, st.norm.ppf(param["ws_ps"])])
     else:
         if param["reduction"]:
+            percentiles = np.hstack([0, param["ws_ps"]])
             par1 = param["fun"][1].fit(
-                df.loc[((p >= percentiles[1]) & (p <= percentiles[2])), param["var"]]
+                df_sort[((p >= percentiles[1]) & (p <= percentiles[2]))]
             )
 
-            par2 = -0.05
+            par2 = 1 / np.max(
+                df[param["var"]]
+            )  # param["fun"][2].fit(df_sort[(p >= percentiles[2])])[0]
             par0 = [
                 st.norm.ppf(param["ws_ps"][0]),
                 st.norm.ppf(param["ws_ps"][-1]),
@@ -118,11 +119,11 @@ def st_analysis(df, param):
     if param[
         "guess"
     ]:  # checked outside because some previous parameters are required later
-        print("Initial guess computed: " + str(par0))
+        logger.info("Initial guess computed: " + str(par0))
         par0 = param["p0"]
-        print("Initial guess given: " + str(par0))
+        logger.info("Initial guess given: " + str(par0))
     else:
-        print("Initial guess computed: " + str(par0))
+        logger.info("Initial guess computed: " + str(par0))
     mode = np.zeros(param["no_fun"], dtype=int).tolist()
 
     if (not param["guess"]) & (any(np.abs(par0) > 20)):
@@ -135,7 +136,7 @@ def st_analysis(df, param):
     return df, par0, mode
 
 
-def best_params(data, bins, distrib, tail=False):
+def best_params(data: pd.DataFrame, bins: int, distrib: str, tail: bool = False):
     """Computes the best parameters of a simple probability model attending to the rmse of the pdf
 
     Args:
@@ -164,7 +165,7 @@ def best_params(data, bins, distrib, tail=False):
     return params
 
 
-def fit_(data, bins, model):
+def fit_(data: pd.DataFrame, bins: int, model: str):
     """Fits a simple probability model and computes the sse with the empirical pdf
 
     Args:
@@ -195,7 +196,7 @@ def fit_(data, bins, model):
     return results
 
 
-def nonst_analysis(df, param):
+def nonst_analysis(df: pd.DataFrame, param: dict):
     """Makes a non-stationary analysis for several modes
 
     Args:
@@ -243,7 +244,7 @@ def nonst_analysis(df, param):
     return param
 
 
-def nonst_fit(df, param):
+def nonst_fit(df: pd.DataFrame, param: dict):
     """Fits a non-stationary probability model
 
     Args:
@@ -275,19 +276,18 @@ def nonst_fit(df, param):
         # Check if a mode is given. Optimize a specific mode (and parameters)
         # ------------------------------------------------------------------------------
         nllf = 1e9
-        par, nllf, _ = fourier_expansion(df, param["par"], nllf, param)
+        par, nllf, _ = fourier_expansion(df, param["par"], param)
         bic = 2 * nllf + np.log(len(df[param["var"]])) * (len(par))
 
     return par, bic, nllf
 
 
-def fourier_expansion(data, par, param):
+def fourier_expansion(data: pd.DataFrame, par: list, param: dict):
     """Prepares the initial guess and estimates the n-order non-stationary parameters
 
     Args:
         * data (pd.DataFrame): raw data
-        * par (dict): the guess parameters of the probability model
-        * llf (dict): log-likelihood value of the first order
+        * par (list): the guess parameters of the probability model
         * param (dict): the parameters of the analysis
 
     Returns:
@@ -323,8 +323,7 @@ def fourier_expansion(data, par, param):
         ind_ = np.diff(np.vstack([mode[0], mode]), axis=0)
 
         ind_[ind_ < 0] = 0
-        par0, pos, comp_ = {}, [], []
-        no_1, no_2 = [0], [0]
+        par0, pos = {}, []
         # ------------------------------------------------------------------------------
         # Compute the position after which the parameters will be expanded
         # ------------------------------------------------------------------------------
@@ -339,49 +338,40 @@ def fourier_expansion(data, par, param):
             if not ind_mode:
                 nllf[imode] = 1e10
                 par[imode] = param["par"]
-                comp_.append(None)
-            else:
-                if no_prob_model == 1:
-                    comp_.append(mode[ind_mode - 1])
-                elif no_prob_model == 0:
-                    comp_.append(mode[no_1[-1]])
-                    no_1.append(ind_mode)
-                else:
-                    comp_.append(mode[no_2[-1]])
-                    no_2.append(ind_mode)
-                    no_1 = [ind_mode]
 
         # ------------------------------------------------------------------------------
         # Expand in Fourier Series and fit the parameters
         # ------------------------------------------------------------------------------
         for ind_mode, imode in enumerate(mode):
-            par0[imode] = initial_params(
-                param, par, pos[ind_mode], imode, comp_[ind_mode]
-            )
+            if ind_mode - 1 < 0:
+                comp_ = None
+            else:
+                comp_ = mode[ind_mode - 1]
+            par0[imode] = initial_params(param, par, pos[ind_mode], imode, comp_)
 
-            print("Mode " + str(imode) + " non-stationary")
+            logger.info("Mode " + str(imode) + " non-stationary")
             if ind_mode == 0:
                 par[imode], nllf[imode] = fit(
                     data, param, par0[imode], imode, nllf[imode]
                 )
             else:
                 par[imode], nllf[imode] = fit(
-                    data, param, par0[imode], imode, nllf[comp_[ind_mode]]
+                    data, param, par0[imode], imode, nllf[comp_]
                 )
     else:
         mode = [tuple(param["mode"])]
-        print("Mode " + str(mode[0]) + " non-stationary")
-        par, nllf = fit(data, param, par, mode[0], nllf)
+        logger.info("Mode " + str(mode[0]) + " non-stationary")
+        par, nllf = fit(data, param, par, mode[0], 1e10)
 
     return par, nllf, mode[1:]
 
 
-def initial_params(param, par, pos, imode, comp):
+def initial_params(param: dict, par: list, pos: int, imode: list, comp: list):
     """Prepares the parameters from previous fit to the following
 
     Args:
         * param (dict): the parameters of the analysis
-        * par (dict): the guess parameters of the probability model
+        * par (list): the guess parameters of the probability model
         * pos (int): location to place the new terms for the fit
         * imode (list): combination of modes for fitting
         * comp (list): components of the current mode
@@ -407,22 +397,38 @@ def initial_params(param, par, pos, imode, comp):
         comp = imode
         par0 = par[comp]
         for i in range(param["no_tot_param"]):
-            par0 = np.insert(par0, i * (npars_ + 1) + 1, add_,)
+            par0 = np.insert(
+                par0,
+                i * (npars_ + 1) + 1,
+                add_,
+            )
 
     elif param["reduction"]:
         if pos == 0:
             loc = npars_ * (imode[0] - 1) + 1
-            par0 = np.insert(par[comp], loc, add_,)
+            par0 = np.insert(
+                par[comp],
+                loc,
+                add_,
+            )
             for _ in range(param["no_param"][0] - 1):
                 loc = loc + npars_ * (imode[0] - 1) + (npars_ + 1)
-                par0 = np.insert(par0, loc, add_,)
+                par0 = np.insert(
+                    par0,
+                    loc,
+                    add_,
+                )
         else:
             loc = (
                 param["no_param"][0] * (imode[0] * npars_ + 1)
                 + npars_ * (imode[1] - 1)
                 + 1
             )
-            par0 = np.insert(par[comp], loc, add_,)
+            par0 = np.insert(
+                par[comp],
+                loc,
+                add_,
+            )
     else:
         par0 = par[comp]
         loc = 0
@@ -431,12 +437,16 @@ def initial_params(param, par, pos, imode, comp):
 
         for i in range(param["no_param"][pos]):
             loc = loc + npars_ * (imode[pos] - 1) + 1
-            par0 = np.insert(par0, loc, add_,)
+            par0 = np.insert(
+                par0,
+                loc,
+                add_,
+            )
             loc += npars_
     return par0
 
 
-def matching_lower_bound(par):
+def matching_lower_bound(par: dict):
     """Matching conditions between two probability models (PMs). Lower refers to the
     low tail-body PMs in the case of fitting three PMs.
 
@@ -499,7 +509,10 @@ def matching_lower_bound(par):
                 ft_u1 = param["fun"][f_tail].pdf(0, df_[f_tail]["s"], df_[f_tail]["l"])
             else:
                 ft_u1 = param["fun"][f_tail].pdf(
-                    0, df_[f_tail]["s"], df_[f_tail]["l"], df_[f_tail]["e"],
+                    0,
+                    df_[f_tail]["s"],
+                    df_[f_tail]["l"],
+                    df_[f_tail]["e"],
                 )
         else:
             if param["no_param"][f_body] == 2:
@@ -535,7 +548,7 @@ def matching_lower_bound(par):
     return constraints_
 
 
-def matching_upper_bound(par):
+def matching_upper_bound(par: dict):
     """Matching conditions between two probability models (PMs). Upper refers to the
     low tail-body PMs for fitting three PMs.
 
@@ -596,7 +609,7 @@ def matching_upper_bound(par):
     return constraints_
 
 
-def fit(df_, param_, par0, mode_, ref):
+def fit(df_: pd.DataFrame, param_: dict, par0: list, mode_: list, ref: int):
     """Fits the data to the given probability model
 
     Args:
@@ -754,7 +767,7 @@ def nllf(par, df, imod, param, t_expans):
     # ----------------------------------------------------------------------------------
     df, esc = get_params(df, param, par, imod, t_expans)
 
-    if np.isnan(par).any():
+    if (np.isnan(par).any()) | (any(esc[key_] <= 0 for key_ in esc.keys())):
         nllf = 1e10
     elif param["reduction"]:
         # ------------------------------------------------------------------------------
@@ -818,7 +831,7 @@ def nllf(par, df, imod, param, t_expans):
         # ------------------------------------------------------------------------------
         # Compute the NLLF without reducing any parameter of the probability models
         # ------------------------------------------------------------------------------
-        nllf, en, lpdf = 0, 0, 0
+        nllf, en, lpdf = 0, 0, []
 
         if param["constraints"]:
             # if not (param["type"] == "circular"):
@@ -935,8 +948,8 @@ def nllf(par, df, imod, param, t_expans):
                         [
                             lpdf,
                             param["fun"][2].logpdf(
-                                df[1].loc[iutail, param["var"]],
-                                -df[1].loc[iutail, "u2"],
+                                df[1].loc[iutail, param["var"]]
+                                - df[1].loc[iutail, "u2"],
                                 df[1].loc[iutail, "s"],
                                 df[1].loc[iutail, "l"],
                             )
@@ -948,8 +961,8 @@ def nllf(par, df, imod, param, t_expans):
                         [
                             lpdf,
                             param["fun"][2].logpdf(
-                                df[1].loc[iutail, param["var"]],
-                                -df[1].loc[iutail, "u2"],
+                                df[1].loc[iutail, param["var"]]
+                                - df[1].loc[iutail, "u2"],
                                 df[1].loc[iutail, "s"],
                                 df[1].loc[iutail, "l"],
                                 df[1].loc[iutail, "e"],
@@ -961,7 +974,7 @@ def nllf(par, df, imod, param, t_expans):
             if (np.isnan(lpdf).any()) | (np.isinf(lpdf).any()):
                 nllf = 1e10
             else:
-                if lpdf == 0:
+                if lpdf.size == 1:
                     nllf = 1e10
                 else:
                     nllf = -np.sum(lpdf)
@@ -1041,7 +1054,9 @@ def nllf(par, df, imod, param, t_expans):
     return nllf
 
 
-def get_params(df, param, par, imod, t_expans):
+def get_params(
+    df: pd.DataFrame, param: dict, par: list, imod: list, t_expans: np.ndarray
+):
     """Gets the parameters of the probability models for fitting
 
     Args:
@@ -1050,7 +1065,6 @@ def get_params(df, param, par, imod, t_expans):
         * par (dict): the guess parameters of the probability model
         * imod (list): combination of modes for fitting
         * t_expans (np.ndarray): the variability of the modes
-        * pos (list, optional): location of the different probability models. Defaults to [0, 0, 0].
 
     Returns:
         * df (pd.DataFrame): the parameters
@@ -1328,7 +1342,7 @@ def get_params(df, param, par, imod, t_expans):
     return df, esc
 
 
-def ppf(df, param, ppf=True):
+def ppf(df: pd.DataFrame, param: dict, ppf: bool = True):
     """Computes the inverse of the probability function
 
     Args:
@@ -1347,6 +1361,8 @@ def ppf(df, param, ppf=True):
         # If reduction is possible
         # ------------------------------------------------------------------------------
         df, esc = get_params(df, param, param["par"], param["mode"], t_expans)
+
+        # Choose data below esc[1]
         idu1 = df["prob"] < esc[1]
         df.loc[idu1, param["var"]] = df.loc[idu1, "u1"] - param["fun"][0].ppf(
             (esc[1] - df.loc[idu1, "prob"]) / esc[1],
@@ -1354,6 +1370,7 @@ def ppf(df, param, ppf=True):
             scale=df.loc[idu1, "siggp1"],
         )
 
+        # Choose data above esc[2]
         idu2 = df["prob"] > 1 - esc[2]
         df.loc[idu2, param["var"]] = df.loc[idu2, "u2"] + param["fun"][2].ppf(
             (df.loc[idu2, "prob"] - 1 + esc[2]) / esc[2],
@@ -1362,11 +1379,14 @@ def ppf(df, param, ppf=True):
             scale=df.loc[idu2, "siggp2"],
         )
         idb = (df["prob"] <= 1 - esc[2]) & (df["prob"] >= esc[1])
+
         if param["no_param"][0] == 2:
+            # Computes the ppf for biparametric PMs
             df.loc[idb, param["var"]] = param["fun"][1].ppf(
                 df.loc[idb, "prob"], df.loc[idb, "shape"], df.loc[idb, "loc"]
             )
         else:
+            # Computes the ppf for triparametric PMs
             df.loc[idb, param["var"]] = param["fun"][1].ppf(
                 df.loc[idb, "prob"],
                 df.loc[idb, "shape"],
@@ -1376,9 +1396,8 @@ def ppf(df, param, ppf=True):
     else:
         if param["no_fun"] == 1:
             # --------------------------------------------------------------------------
-            # If just one probability models is given
+            # If only one probability model is given
             # --------------------------------------------------------------------------
-
             df, esc = get_params(df, param, param["par"], param["mode"], t_expans)
             if param["no_param"][0] == 2:
                 df[0][param["var"]] = param["fun"][0].ppf(
@@ -1400,24 +1419,20 @@ def ppf(df, param, ppf=True):
 
             posi = np.zeros(len(df), dtype=int)
             dfn = np.sort(df["n"].unique())
-            # show_message = False
+
             for i, j in enumerate(df.index):  # Seeking every n (dates)
                 posn = np.argmin(np.abs(df["n"][j] - dfn))
                 posj = np.argmin(np.abs(df["prob"][j] - cdfs[posn, :].T))
                 posi[i] = posj
                 if not posj:
                     posi[i] = posi[i - 1]
-            #         show_message = True
-
-            # if show_message:
-            #     print("The parameter might be not valid for some periods.")
 
             df.loc[:, param["var"]] = data[posi]
 
     return df
 
 
-def cdf(df, param, ppf=False):
+def cdf(df: pd.DataFrame, param: dict, ppf: bool = False):
     """Computes the cumulative distribution function
 
     Args:
@@ -1434,6 +1449,7 @@ def cdf(df, param, ppf=False):
         df["prob"] = 0
 
     if param["reduction"]:
+        # Reduction allowed
         df, esc = get_params(df, param, param["par"], param["mode"], t_expans)
 
         fu1 = df["data"] < df["u1"]
@@ -1475,6 +1491,7 @@ def cdf(df, param, ppf=False):
             )
         cdf_ = df["prob"]
     else:
+        # Not reduction applied
         if param["no_fun"] == 1:
             # One PM
             df, esc = get_params(df, param, param["par"], param["mode"], t_expans)
@@ -1489,7 +1506,7 @@ def cdf(df, param, ppf=False):
                 )
             cdf_ = df[0]["prob"]
         else:
-            # Si tenemos más de uno
+            # More than one PMs
             if ppf:
                 data = np.linspace(param["minimax"][0], param["minimax"][1], 10000)
                 dfn = np.sort(df["n"].unique())
@@ -1497,7 +1514,11 @@ def cdf(df, param, ppf=False):
                 aux = pd.DataFrame(-1, index=dfn, columns=["s"])
                 aux["n"] = df["n"]
                 dff, esc = get_params(
-                    aux, param, param["par"], param["mode"], t_expans,
+                    aux,
+                    param,
+                    param["par"],
+                    param["mode"],
+                    t_expans,
                 )
                 cdf_ = np.zeros([len(dfn), len(data)])
                 if param["constraints"]:
@@ -1809,7 +1830,7 @@ def cdf(df, param, ppf=False):
     return cdf_
 
 
-def transform(data, params):
+def transform(data: pd.DataFrame, params: dict):
     """Normalized the input data given a normalized method (Box-Cox or Yeo-Johnson)
 
     Args:
@@ -1848,16 +1869,16 @@ def transform(data, params):
     return data, params
 
 
-def inverse_transform(data, params, ensemble=False):
+def inverse_transform(data: pd.DataFrame, params: dict, ensemble: bool = False):
     """Compute the inverse of the transformation
 
     Args:
-        data ([type]): [description]
-        params ([type]): [description]
-        ensemble (boolean): True or False
+        data (pd.DataFrame): raw timeseries
+        params (dict): parameters of the model
+        ensemble (bool, optional): True or False
 
     Returns:
-        [type]: [description]
+        pd.DataFrame: the inverse of the transform of data
     """
     from sklearn import preprocessing
 
@@ -1883,17 +1904,17 @@ def inverse_transform(data, params, ensemble=False):
     return data
 
 
-def numerical_cdf_pdf_at_n(n, param, variable, alpha=0.01):
-    """[summary]
+def numerical_cdf_pdf_at_n(n: float, param: dict, variable: str, alpha: float = 0.01):
+    """Compute the cdf and pdf numerically at a given time "n" (normalized year)
 
     Args:
-        ns ([type]): [description]
-        param ([type]): [description]
-        variable ([type], optional): [description]. Defaults to None.
-        alpha (float, optional): [description]. Defaults to 0.01.
+        n (float): a value in normalized period
+        param (dict): input parameters
+        variable (str): Name of the variable.
+        alpha (float, optional): Resolution. Defaults to 0.01.
 
     Returns:
-        [type]: [description]
+        pd.DataFrame: the numerical pdf and cdf
     """
 
     param = auxiliar.str2fun(param, None)
@@ -1910,7 +1931,7 @@ def numerical_cdf_pdf_at_n(n, param, variable, alpha=0.01):
             columns=[variable],
         )
 
-    # Transformed timeserie
+    # Transformed timeseries
     if (not param["transform"]["plot"]) & param["transform"]["make"]:
         if "scale" in param:
             res[param["var"]] = res[param["var"]] * param["scale"]
@@ -1929,17 +1950,15 @@ def numerical_cdf_pdf_at_n(n, param, variable, alpha=0.01):
     else:
         values_ = np.diff(res[param["var"]].index) / np.diff(res[param["var"]].values)
         index_ = np.diff(res[param["var"]].values) + res[param["var"]].values[:-1]
-        # index_ = res[
-        #     param["var"]
-        # ].values
-    # values_ = np.append(0, values_)
+
     res_ = pd.DataFrame(values_, index=index_, columns=["pdf"])
     res_["cdf"] = (res[param["var"]].index[:-1] + res[param["var"]].index[1:]) / 2
-    # res_["cdf"] = res[param["var"]].index
     return res_
 
 
-def ensemble_cdf(data, param, variable, nodes=[4383, 250]):
+def ensemble_cdf(
+    data: pd.DataFrame, param: dict, variable: str, nodes: list = [4383, 250]
+):
     """Computes the ensemble of the cumulative distribution function for several models
 
     Args:
@@ -1954,12 +1973,16 @@ def ensemble_cdf(data, param, variable, nodes=[4383, 250]):
     cdfs = 0
     data_model = np.tile(data, nodes[0])
     index_ = np.repeat(np.linspace(0, 1 - 1 / nodes[0], nodes[0]), nodes[1])
-    dfm = pd.DataFrame(
-        np.asarray([index_, data_model]).T, index=index_, columns=["n", "data"]
-    )
-    indexes = np.where(dfm["data"] == 0)[0]
+
     for model in param["TS"]["models"]:
+        dfm = pd.DataFrame(
+            np.asarray([index_, data_model]).T, index=index_, columns=["n", "data"]
+        )
+
+        indexes = np.where(dfm["data"] == 0)[0]
         param[variable] = auxiliar.str2fun(param[variable], model)
+        if param[variable][model]["range"] > 10:
+            dfm["data"] = dfm["data"] / (param[variable][model]["range"] / 3)
         cdf_model = cdf(dfm.copy(), param[variable][model])
         cdf_model.iloc[indexes[np.isnan(cdf_model.iloc[indexes]).values]] = 0
         cdf_model.loc[np.isnan(cdf_model)] = 1
@@ -1969,7 +1992,9 @@ def ensemble_cdf(data, param, variable, nodes=[4383, 250]):
     return cdfs
 
 
-def ensemble_ppf(df, param, variable, nodes=[4383, 250]):
+def ensemble_ppf(
+    df: pd.DataFrame, param: dict, variable: str, nodes: list = [4383, 250]
+):
     """Computes the inverse of the cumulative distribution function
 
     Args:
@@ -1989,14 +2014,11 @@ def ensemble_ppf(df, param, variable, nodes=[4383, 250]):
     )
     df[variable] = -1
 
-    print("Attempting to read F-file of %s" % (variable))
     try:
-        print("F-file of %s readed." % (variable))
         cdfs = read.csv(param["TS"]["F_files"] + variable)
     except:
         if "F_files" in param["TS"].keys():
             cdfs = ensemble_cdf(data, param, variable, nodes)
-            print("Writting F-file of %s" % (variable))
             pd.DataFrame(cdfs).to_csv(param["TS"]["F_files"] + variable + ".csv")
         else:
             raise ValueError(
@@ -2006,16 +2028,19 @@ def ensemble_ppf(df, param, variable, nodes=[4383, 250]):
             )
 
     dfn = np.sort(cdfs.index.unique())
-    print("Estimating pdf of ensemble for %s" % (variable))
-    for j in df["n"].index:  # Find the date for every n
-        posn = np.argmin(np.abs(df.loc[j, "n"] - dfn))
-        posi = np.argmin(np.abs(df["prob"][j] - cdfs.loc[dfn[posn]]))
-        df.loc[j, variable] = data[posi]
+    logger.info("Estimating pdf of ensemble for %s" % (variable))
 
-    return df
+    posn = np.zeros(df.shape[0], dtype=np.int16)
+    posi = np.zeros(df.shape[0], dtype=np.int16)
+    for no_, ind_ in enumerate(df["n"].index):  # Find the date for every n
+        posn[no_] = np.argmin(np.abs(df.loc[ind_, "n"] - dfn))
+        posi[no_] = np.argmin(np.abs(df["prob"][ind_] - cdfs.loc[dfn[posn[no_]]]))
+    df.loc[:, variable] = data[posi]
+
+    return df[variable]
 
 
-def params_t_expansion(mod, param, nper):
+def params_t_expansion(mod: int, param: dict, nper: pd.DataFrame):
     """Computes the oscillatory dependency in time of the parameters
 
     Args:
@@ -2057,15 +2082,7 @@ def params_t_expansion(mod, param, nper):
     elif param["basis_function"]["method"] == "sinusoidal":
         t_expans = np.zeros([np.max(mod), len(nper)])
         for i in range(0, np.max(mod)):
-            # n = (
-            #     nper
-            #     * np.max(param["basis_function"]["periods"])
-            #     / param["basis_function"]["periods"][i]
-            # )
             n = (i + 1) * (nper + 1)
-            #     * np.max(param["basis_function"]["periods"])
-            #     / param["basis_function"]["periods"][i]
-            # )
             t_expans[i, :] = np.sin(np.pi / 2 * n.T)
 
     elif param["basis_function"]["method"] == "chebyshev":
@@ -2084,19 +2101,20 @@ def params_t_expansion(mod, param, nper):
     return t_expans
 
 
-def print_message(res, j, mode, ref):
+def print_message(res: dict, j: int, mode: list, ref: float):
     """Prints the messages during the computation
 
     Args:
         * res (dict): result from the fitting algorithm
         * j (int): no. of iteration
         * mode (list): the current mode
+        * ref (float): reference value of previous nllf
 
     Returns:
         None
     """
-    print("mode:     " + str(mode))
-    print("fun:      " + str(res["fun"]))
+    logger.info("mode:     " + str(mode))
+    logger.info("fun:      " + str(res["fun"]))
 
     if (ref < 0) & (res["fun"] < 0):
         improve = np.round((ref - res["fun"]) / -ref * 100, decimals=3)
@@ -2116,13 +2134,13 @@ def print_message(res, j, mode, ref):
     else:
         improve = "No or not significant "
 
-    print("improve:  " + improve)
-    print("message:  " + str(res["message"]))
-    print("feval:    " + str(res["nfev"]))
-    print("niter:    " + str(res["nit"]))
-    print("giter:    " + str(j))
-    print("params:   " + str(res["x"]))
-    print(
+    logger.info("improve:  " + improve)
+    logger.info("message:  " + str(res["message"]))
+    logger.info("feval:    " + str(res["nfev"]))
+    logger.info("niter:    " + str(res["nit"]))
+    logger.info("giter:    " + str(j))
+    logger.info("params:   " + str(res["x"]))
+    logger.info(
         "=============================================================================="
     )
 
@@ -2160,7 +2178,7 @@ def emp(data, pemp, variable, wind_length=1 / 50):
 
 
 class wrap_norm(st.rv_continuous):
-    """ Wrapped normal probability model"""
+    """Wrapped normal probability model"""
 
     def __init__(self):
         """Initializate the main parameters and properties"""

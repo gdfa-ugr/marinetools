@@ -1,6 +1,5 @@
 import datetime
 import time
-import warnings
 
 import numpy as np
 import pandas as pd
@@ -8,7 +7,6 @@ import scipy.stats as st
 from loguru import logger
 from marinetools.temporal.fdist import statistical_fit as stf
 from marinetools.utils import auxiliar, read, save
-from scipy.interpolate import Rbf, griddata
 
 """This file is part of MarineTools.
 
@@ -29,7 +27,8 @@ along with MarineTools.  If not, see <https://www.gnu.org/licenses/>.
 
 def show_init_message():
     message = (
-        "=============================================================================\n"
+        "\n"
+        + "=============================================================================\n"
         + " Initializing MarineTools.temporal, v.1.0.0\n"
         + "=============================================================================\n"
         + "Copyright (C) 2021 Environmental Fluid Dynamics Group (University of Granada)\n"
@@ -49,39 +48,67 @@ def show_init_message():
     return message
 
 
-def marginalfit(df, parameters=None, fname=None):
-    """Fits a stationary (or not), simple or mixed probability model to data
+def marginalfit(df: pd.DataFrame, parameters: dict):
+    """Fits a stationary (or not), simple or mixed probability model to data. Additional
+    information can be found in Cobos et al., 2022, 'MarineTools.temporal: A Python
+    package to simulate Earth and environmental time series'. Environmental Modelling
+    and Software.
 
     Args:
         * df (pd.DataFrame): the raw time series
-        * parameters (None or dict): the initial guess parameters of the probability models. ''var''
-         key is a  string with the name of the variable, 'fun' is a string with the name
-         of the probability model, 'analysis' stand for stationary (0) or not (1),
-         'periods' is a list with periods of oscillation for nonst models ,
-         Solari et al. (2011) or not,
-         'percentiles' is 1 or a list for simple and mixed models,
-         'method' is a string with any of the several minimization methods of
-         scipy.optimize,
-         and 'fname' is a string with the name of the output file with the fitting
-         parameters
-        * fname (string): the filename
+        * parameters (dict): the initial guess parameters of the probability models.
+            - 'var' key is a  string with the name of the variable,
+            - 'type':
+            - 'fun' is a list within strings with the name of the probability model,
+            - 'non_stat_analysis' stand for stationary (False) or not (True),
+            - 'ws_ps': initial guess of percentiles or weights of PMs
+            - 'basis_function' is an option to specify the GFS expansion that includes:
+                - 'method': a string with an option of the GFS
+                - 'noterms': number of terms of GFS
+                - 'periods': is a list with periods of oscillation for NS-PMs ,
+            - 'transform' stand for normalization that includes:
+                - 'make':
+                - 'method':
+                - 'plot':
+            - 'optimize': a dictionary with some initial parameters for the optimization
+            method (see scipy.optimize.minimize), some options are:
+                - 'method': "SLSQP",
+                - 'maxiter': 1e2,
+                - 'ftol': 1e-4
+                - 'eps': 1e-7
+                - 'bounds': 0.5
+            - giter: number of global iterations. Repeat the minimization algorithm
+            changing the initial guess
+            - 'mode': a list with the mode to be computed independently,
+            - 'par': initial guess of the parameters for the mode given
+            - 'folder_name': string where the folder where the analysis will be saved
+            (optional)
+            - 'file_name': string where it will be saved the analysis (optional)
 
     Example:
         * param = {'Hs': {'var': 'Hs',
-                         'fun': {0: 'norm'},
-                         'circular': True or False (default)
-                         'non_stat_analysis': True (default), False,
-                         'periods': [1, 1/2, 1/4, ...],
-                         'percentiles': 1 or a list
-                         'method': 'SLSQP', 'dual_annealing', 'differential_evolution' or 'shgo',
-                         'fname', 'params', it will be saved as a json file
-                         'transform': None or a list with:
-                            {"make": True, for make the transformation
-                            "plot": False, for showing the plot of transformation data or not,
-                            "method": "box-cox"}, pr "yeo-johnson
-                         'guess': True of False,
-                         'par': a list with params is guess is True, if not, it is not required,
-                         'bic': True or False}
+                        'fun': {0: 'norm'},
+                        'type': 'linear' (default) or 'circular',
+                        'non_stat_analysis': True (default), False,
+                        'basis_functions': None or a list with:
+                            {"method": "trigonometric", "sinusoidal", ...
+                            "noterms": int,
+                            "periods": [1, 2, 4, ...]}
+                        'ws_ps': 1 or a list,
+                        'transform': None or a list with:
+                            {"make": True,
+                            "plot": False,
+                            "method": "box-cox"}, or "yeo-johnson}
+                        'mode': [6] or [2,2] ...
+                        'par': a list with initial parameters if mode is given
+                        'optimization': {'method': 'SLSQP' (default), 'dual_annealing',
+                            'differential_evolution' or 'shgo',
+                            'eps', 'ftol', 'maxiter', 'bounds'},
+                        'giter': 10,
+                        'bic': True or False,
+                        'folder_name': 'marginalfit'
+                        'file_name': if not given, it is created from input parameters
+                        }
                     }
 
     Returns:
@@ -91,15 +118,17 @@ def marginalfit(df, parameters=None, fname=None):
     start_time = time.time()
     now = datetime.datetime.now()
     current_time = now.strftime("%H:%M:%S")
-    print(show_init_message())
-    print("Current Time = %s\n" % current_time)
+    logger.info(show_init_message())
+    logger.info("Current Time = %s\n" % current_time)
 
     # Remove nan in the input timeseries
     df = pd.DataFrame(df).dropna()
 
-    # Read the data if the parameters are not given
-    if fname is not None:
-        parameters = read.rjson(fname)
+    # Check if negative and positive values are in the timeseries for fitting purpouses
+    if df[df < 0].any().values[0]:
+        logger.info(
+            "Dataset has negative values. Check that the chosen distribution functions adequately fit negative values."
+        )
 
     # Check that the input dictionary is well defined
     parameters = check_marginal_params(parameters)
@@ -114,6 +143,7 @@ def marginalfit(df, parameters=None, fname=None):
         parameters["transform"]["min"] = df.min().values[0] - 1e-2
         df -= parameters["transform"]["min"]
 
+    # Scale and shift time series for ensuring the use of any PM
     parameters["range"] = float((df.max() - df.min()).values[0])
     if parameters["range"] > 10:
         df = df / (parameters["range"] / 3)
@@ -133,15 +163,14 @@ def marginalfit(df, parameters=None, fname=None):
         ]
 
     # Calculate the normalize time along the reference oscillating period
-
     df["n"] = np.fmod(
         (df.index - datetime.datetime(df.index[0].year, 1, 1, 0)).total_seconds().values
         / (parameters["basis_period"][0] * 365.25 * 24 * 3600),
         1,
     )
 
-    print("MARGINAL STATISTICAL FIT")
-    print(
+    logger.info("MARGINAL STATISTICAL FIT")
+    logger.info(
         "=============================================================================="
     )
     # Make the full analysis if "mode" is not given or a specify mode wheter "mode" is given
@@ -157,7 +186,7 @@ def marginalfit(df, parameters=None, fname=None):
             term += " - " + str(parameters["fun"][i].name)
         term += " - genpareto " * parameters["reduction"]
         term += " probability model"
-        print(term)
+        logger.info(term)
         # Make the stationary analysis
         df, parameters["par"], parameters["mode"] = stf.st_analysis(df, parameters)
 
@@ -173,13 +202,13 @@ def marginalfit(df, parameters=None, fname=None):
                 term += " - " + str(parameters["fun"][i].name)
             term += " - genpareto " * parameters["reduction"]
             term += " probability model"
-            print(term)
-            print(
+            logger.info(term)
+            logger.info(
                 "with the "
                 + parameters["optimization"]["method"]
                 + " optimization method."
             )
-            print(
+            logger.info(
                 "=============================================================================="
             )
             # Make the non-stationary analysis
@@ -187,7 +216,7 @@ def marginalfit(df, parameters=None, fname=None):
     else:
         # Write the information about the variable, PMs, method and mode
         term = (
-            "\nNon-stationary fit of "
+            "Non-stationary fit of "
             + parameters["var"]
             + " with the "
             + str(parameters["fun"][0].name)
@@ -197,8 +226,8 @@ def marginalfit(df, parameters=None, fname=None):
         term += " and mode:"
         for mode in parameters["mode"]:
             term += " " + str(mode)
-        print(term)
-        print(
+        logger.info(term)
+        logger.info(
             "=============================================================================="
         )
         # Make the non-stationary analysis
@@ -209,36 +238,37 @@ def marginalfit(df, parameters=None, fname=None):
     parameters["status"] = "Distribution models fitted succesfully"
 
     # Final computational time
-    print("End fitting process")
-    print("--- %s seconds ---" % (time.time() - start_time))
+    logger.info("End fitting process")
+    logger.info("--- %s seconds ---" % (time.time() - start_time))
 
-    # Save the parameters in the file if "fname" is given in params
+    # Save the parameters in the file if "file_name" is given in params
+    auxiliar.mkdir(parameters["folder_name"])
 
-    auxiliar.mkdir("marginalfit")
-    filename = parameters["var"] + "_" + str(parameters["fun"][0])
-    for i in range(1, parameters["no_fun"]):
-        filename += "_" + str(parameters["fun"][i])
-    filename += "_genpareto" * parameters["reduction"]
+    if not "file_name" in parameters.keys():
+        filename = parameters["var"] + "_" + str(parameters["fun"][0])
+        for i in range(1, parameters["no_fun"]):
+            filename += "_" + str(parameters["fun"][i])
+        filename += "_genpareto" * parameters["reduction"]
 
-    for i in parameters["ws_ps"]:
-        filename += "_" + str(i)
+        for i in parameters["ws_ps"]:
+            filename += "_" + str(i)
 
-    filename += "_st_" * (not parameters["non_stat_analysis"])
-    filename += "_nonst" * parameters["non_stat_analysis"]
+        filename += "_st_" * (not parameters["non_stat_analysis"])
+        filename += "_nonst" * parameters["non_stat_analysis"]
 
-    filename += "_" + str(parameters["basis_period"][0])
+        filename += "_" + str(parameters["basis_period"][0])
 
-    filename += "_" + parameters["basis_function"]["method"]
-    filename += "_" + str(parameters["basis_function"]["noterms"])
-    filename += "_" + parameters["optimization"]["method"]
-    parameters["fname"] = "marginalfit/" + filename
+        filename += "_" + parameters["basis_function"]["method"]
+        filename += "_" + str(parameters["basis_function"]["no_terms"])
+        filename += "_" + parameters["optimization"]["method"]
 
-    save.to_json(parameters, parameters["fname"])
+        filename = parameters["folder_name"] + filename
+        parameters["file_name"] = filename
+
+    save.to_json(parameters, parameters["file_name"])
 
     # Return the dictionary with the parameters from the analysis
-    output = dict()
-    output[parameters["var"]] = parameters
-    return output
+    return parameters
 
 
 def check_marginal_params(param):
@@ -256,7 +286,7 @@ def check_marginal_params(param):
     param["reduction"] = False
     param["no_tot_param"] = 0
 
-    print("USER OPTIONS:")
+    logger.info("USER OPTIONS:")
     k = 1
 
     if not "transform" in param.keys():
@@ -272,7 +302,7 @@ def check_marginal_params(param):
                     )
                 )
             else:
-                print(
+                logger.info(
                     str(k)
                     + " - Data is previously normalized ("
                     + param["transform"]["method"]
@@ -284,7 +314,7 @@ def check_marginal_params(param):
     if len(param["fun"].keys()) == 3:
         if (param["fun"][0] == "genpareto") & (param["fun"][2] == "genpareto"):
             param["reduction"] = True
-            print(
+            logger.info(
                 str(k)
                 + " - The combination of PMs given enables the reduction"
                 + " of parameters during the optimization"
@@ -352,15 +382,25 @@ def check_marginal_params(param):
             "sinusoidal",
             "modified",
         ]:
-            if not "noterms" in param["basis_function"].keys():
+            if ((not "no_terms") & (not "periods")) in param["basis_function"].keys():
                 raise ValueError(
-                    "Number of terms are required for Fourier Series approximation."
+                    "Number of terms or periods are required for Fourier Series approximation."
                 )
             else:
-                param["basis_function"]["order"] = param["basis_function"]["noterms"]
-                param["basis_function"]["periods"] = list(
-                    1 / np.arange(1, param["basis_function"]["noterms"] + 1)
-                )
+                if not "periods" in param["basis_function"]:
+                    param["basis_function"]["periods"] = list(
+                        1 / np.arange(1, param["basis_function"]["no_terms"] + 1)
+                    )
+                    param["basis_function"]["order"] = param["basis_function"][
+                        "no_terms"
+                    ]
+                else:
+                    param["basis_function"]["no_terms"] = len(
+                        param["basis_function"]["periods"]
+                    )
+                    param["basis_function"]["order"] = param["basis_function"][
+                        "no_terms"
+                    ]
                 # param["approximation"]["periods"].sort(reverse=True)
                 if not "basis_period" in param:
                     param["basis_period"] = [param["basis_function"]["periods"][0]]
@@ -388,15 +428,15 @@ def check_marginal_params(param):
                 if not "basis_period" in param:
                     param["basis_period"] = [param["basis_function"]["periods"][0]]
 
-        print(
+        logger.info(
             str(k)
-            + " - The basis function give is {}.".format(
+            + " - The basis function given is {}.".format(
                 param["basis_function"]["method"]
             )
         )
         k += 1
 
-        print(
+        logger.info(
             str(k)
             + " - The number of terms given is {}.".format(
                 param["basis_function"]["order"]
@@ -412,7 +452,9 @@ def check_marginal_params(param):
                 "The evaluation of a mode required the initial parameters 'par'. Give the par."
             )
         else:
-            print(str(k) + " - Mode of optimization given ({}).".format(param["mode"]))
+            logger.info(
+                str(k) + " - Mode of optimization given ({}).".format(param["mode"])
+            )
             k += 1
 
     if not "optimization" in param.keys():
@@ -433,13 +475,16 @@ def check_marginal_params(param):
             param["optimization"]["maxiter"] = 1e2
             param["optimization"]["ftol"] = 1e-4
 
+    if not "method" in param["optimization"]:
+        param["optimization"]["method"] = "SLSQP"
+
     if not "giter" in param["optimization"].keys():
         param["optimization"]["giter"] = 10
     else:
         if not isinstance(param["optimization"]["giter"], int):
             raise ValueError("The number of global iterations should be an integer.")
         else:
-            print(
+            logger.info(
                 "{} - Global iterations were given by user ({})".format(
                     str(k), str(param["optimization"]["giter"])
                 )
@@ -452,7 +497,7 @@ def check_marginal_params(param):
         if not isinstance(param["optimization"]["bounds"], (float, int, bool)):
             raise ValueError("The bounds should be a float, integer or False.")
         else:
-            print(
+            logger.info(
                 "{} - Bounds were given by user (bounds = {})".format(
                     str(k), str(param["optimization"]["bounds"])
                 )
@@ -464,16 +509,17 @@ def check_marginal_params(param):
         if not param["reduction"]:
             if param["piecewise"]:
                 param["constraints"] = False
-                print(
+                logger.info(
                     str(k)
                     + " - Piecewise analysis of PMs defined by user. Piecewise is set to True."
                 )
                 k += 1
         else:
-            print(
+            logger.info(
                 str(k)
                 + " - Piecewise analysis is not recommended when reduction is applied. Piecewise is set to False."
             )
+            param["piecewise"] = False
             k += 1
     else:
         param["piecewise"] = False
@@ -486,6 +532,14 @@ def check_marginal_params(param):
 
     if not "transform" in param.keys():
         param["transform"] = {"make": False, "method": None, "plot": False}
+
+    # if "debug" in param.keys():
+    #     if param["debug"]:
+    #         logger.add(
+    #             "debug_file.log", format="{message}", level="DEBUG", rotation="5 MB"
+    #         )
+    #         logger.info("{} - Debug mode ON.".format(str(k)))
+    #         k += 1
 
     if param["reduction"]:
         if len(param["ws_ps"]) != 2:
@@ -512,7 +566,7 @@ def check_marginal_params(param):
             )
 
     if not "circular" in param.keys():
-        print(
+        logger.info(
             "{} - Circular parameters is not given. Assuming that the variable is not circular.".format(
                 str(k)
             )
@@ -541,7 +595,7 @@ def check_marginal_params(param):
 
     if "fix_percentiles" in param.keys():
         if param["fix_percentiles"]:
-            print(
+            logger.info(
                 "{} - Percentiles are fixed. Fix_percentiles is set to True.".format(
                     str(k)
                 )
@@ -550,24 +604,31 @@ def check_marginal_params(param):
     else:
         param["fix_percentiles"] = False
 
-    if k == 1:
-        print("None.")
+    if not "folder_name" in param.keys():
+        param["folder_name"] = "marginalfit/"
+    else:
+        param["folder_name"] += "/marginalfit/"
 
-    print(
+    if k == 1:
+        logger.info("None.")
+
+    logger.info(
         "==============================================================================\n"
     )
 
     return param
 
 
-def nanoise(data, variable, remove=False, filter_=0):
+def nanoise(
+    data: pd.DataFrame, variable: str, remove: bool = False, filter_: str = None
+):
     """Adds noise to time series for better estimations
 
     Args:
         * data (pd.DataFrame): raw time series
         * variable (string): variable to apply noise
         * remove (bool): if True filtered data is removed
-        * filter_ (list): lower limit of values to be filtered
+        * filter_ (list): lower limit of values to be filtered. See query pandas DataFrame.
 
     Returns:
         * df_out (pd.DataFrame): time series with noise
@@ -576,27 +637,32 @@ def nanoise(data, variable, remove=False, filter_=0):
     if isinstance(data, pd.Series):
         data = data.to_frame()
 
-    # Remove nans
-    df = data.dropna()
-    if not df[variable].empty:
-        increments = st.mode(np.diff(np.sort(df[variable].unique())))[0]
-        df_out = df[[variable]] + np.random.rand(len(df[variable]), 1) * increments
-    else:
-        raise ValueError("Input time series is empty.")
+    if isinstance(variable, str):
+        variable = [variable]
 
     # Filtering data
-    if isinstance(filter_, (int, float)):
-        df_out.loc[df_out[variable] < filter_, variable] = filter_
+    if filter_ is not None:
+        data = data.query(filter_)
+
+    # Remove nans
+    df = data.dropna()
+    for var_ in variable:
+        if not df[var_].empty:
+            increments = st.mode(np.diff(np.sort(data[var_].unique())))[0]
+            df[[var_]] = df[[var_]] + np.random.rand(len(df[var_]), 1) * increments
+        else:
+            raise ValueError("Input time series is empty.")
 
     # Removing data
     if remove:
-        df_out = df_out.loc[df_out[variable] == filter_, variable]
+        df = df.loc[df[variable] == filter_, variable]
 
-    return df_out
+    return df
 
 
-def dependencies(df, param):
-    """Computes the temporal dependency using a VAR model (Solari & van Gelder, 2011; Solari & Losada, 2011).
+def dependencies(df: pd.DataFrame, param: dict):
+    """Computes the temporal dependency using a VAR model (Solari & van Gelder, 2011;
+    Solari & Losada, 2011).
 
     Args:
         - df (pd.DataFrame): raw time series
@@ -611,10 +677,10 @@ def dependencies(df, param):
     Returns:
         - df_dt (dict): parameters of the fitting process
     """
-    print(show_init_message())
+    logger.info(show_init_message())
 
-    print("MULTIVARIATE DEPENDENCY")
-    print(
+    logger.info("MULTIVARIATE DEPENDENCY")
+    logger.info(
         "=============================================================================="
     )
 
@@ -636,12 +702,12 @@ def dependencies(df, param):
 
     # Compute: (1) the univariate and temporal analysis is one variable is given,
     #          (2) the multivariate and temporal analysis is more than one is given
-    print(
+    logger.info(
         "Computing the parameters of the stationary {} model up to {} order.".format(
             param["TD"]["method"], param["TD"]["order"]
         )
     )
-    print(
+    logger.info(
         "=============================================================================="
     )
 
@@ -670,7 +736,7 @@ def dependencies(df, param):
 
         # Transformed timeserie
         if param[var_]["transform"]["make"]:
-            variable["data"], _ = stf.transform(variable["data"], param[var_])
+            variable["data"], _ = transform(variable["data"], param[var_])
             variable["data"] -= param[var_]["transform"]["min"]
 
         if "scale" in param[var_]:
@@ -753,7 +819,7 @@ def dependencies(df, param):
     return df_dt
 
 
-def check_dependencies_params(param):
+def check_dependencies_params(param: dict):
     """Checks the input parameters and includes some required arguments for the computation of multivariate dependencies
 
     Args:
@@ -763,27 +829,30 @@ def check_dependencies_params(param):
         * param (dict): checked and updated parameters
     """
 
-    print("USER OPTIONS:")
+    logger.info("USER OPTIONS:")
     k = 1
 
-    if not "method" in param:
+    if not "method" in param.keys():
         param["method"] = "VAR"
-        print(str(k) + " - VAR method used")
+        logger.info(str(k) + " - VAR method used")
         k += 1
 
-    print(
+    if not "events" in param.keys():
+        param["events"] = False
+
+    logger.info(
         "==============================================================================\n"
     )
 
     return param
 
 
-def varfit(data, orden):
+def varfit(data: np.ndarray, order: int):
     """Computes the coefficientes of the VAR(p) model and chooses the model with lowest BIC.
 
     Args:
         * data (np.ndarray): normalize data with its probability model
-        * orden (int): maximum order (p) of the VAR model
+        * order (int): maximum order (p) of the VAR model
 
     Returns:
         * par_dt (dict): parameter of the temporal dependency using VAR model
@@ -791,16 +860,16 @@ def varfit(data, orden):
 
     # Create the list of output parameters
     [dim, t] = np.shape(data)
-    t = t - orden
-    bic, r2adj = np.zeros(orden), []
+    t = t - order
+    bic, r2adj = np.zeros(order), []
 
-    par_dt = [list() for i in range(orden)]
-    for p in range(1, orden + 1):
+    par_dt = [list() for i in range(order)]
+    for p in range(1, order + 1):
         # Create the matrix of input data for p-order
-        y = data[:, orden:]
+        y = data[:, order:]
         z0 = np.zeros([p * dim, t])
         for i in range(1, p + 1):
-            z0[(i - 1) * dim : i * dim, :] = data[:, orden - i : -i]
+            z0[(i - 1) * dim : i * dim, :] = data[:, order - i : -i]
         z = np.vstack((np.ones(t), z0))
         # Estimated the parameters using the ordinary least squared error analysis
         par_dt[p - 1], bic[p - 1], r2a = varfit_OLS(y, z)
@@ -812,7 +881,7 @@ def varfit(data, orden):
     par_dt["id"] = int(id_ + 1)
     par_dt["bic"] = [float(bicValue) for bicValue in bic]
     par_dt["R2adj"] = r2adj[par_dt["id"]]
-    print(
+    logger.info(
         "Minimum BIC ("
         + str(par_dt["bic"][par_dt["id"]])
         + ") obtained for p-order "
@@ -820,12 +889,12 @@ def varfit(data, orden):
         + " and R2adj: "
         + str(par_dt["R2adj"])
     )
-    print(
+    logger.info(
         "=============================================================================="
     )
 
-    if id_ + 1 == orden:
-        print(
+    if id_ + 1 == order:
+        logger.info(
             "Warning! The lower BIC is obtained with the higher order model. Increase the p-order."
         )
 
@@ -891,11 +960,11 @@ def varfit_OLS(y, z):
     return df, bic, R2adj.tolist()
 
 
-def ensemble_dt(models, percentiles="equally"):
+def ensemble_dt(models: dict, percentiles="equally"):
     """Compute the ensemble of multivariate and temporal dependency parameters
 
     Args:
-        * models (dict):
+        * models (dict): models where parameters of temporal dependencies are saved
         * percentiles (string or list): "equally" is equally probability is given for RCMs
             and a list with percentiles of every RCMs if not
 
