@@ -1,0 +1,957 @@
+<!doctype html>
+<html class="no-js">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="marinetools.utils package" href="marinetools.utils.html" /><link rel="prev" title="marinetools.temporal package" href="marinetools.temporal.html" />
+
+    <meta name="generator" content="sphinx-4.4.0, furo 2021.10.09"/>
+        <title>marinetools.temporal.fdist package - marinetools documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  body[data-theme="dark"] {
+    --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+  }
+  @media (prefers-color-scheme: dark) {
+    body:not([data-theme="light"]) {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+  }
+</style></head>
+  <body>
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path stroke="none" d="M0 0h24v24H0z" />
+      <line x1="4" y1="6" x2="20" y2="6" />
+      <line x1="10" y1="12" x2="20" y2="12" />
+      <line x1="6" y1="18" x2="20" y2="18" />
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="index.html"><div class="brand">marinetools  documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
+  
+  
+  <span class="sidebar-brand-text">marinetools  documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="search.html" role="search">
+  <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current has-children"><a class="reference internal" href="modules.html">src</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2 current has-children"><a class="reference internal" href="marinetools.html">marinetools package</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="marinetools.graphics.html">marinetools.graphics package</a></li>
+<li class="toctree-l3 current has-children"><a class="reference internal" href="marinetools.temporal.html">marinetools.temporal package</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l4 current current-page"><a class="current reference internal" href="#">marinetools.temporal.fdist package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="marinetools.utils.html">marinetools.utils package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <section id="marinetools-temporal-fdist-package">
+<h1>marinetools.temporal.fdist package<a class="headerlink" href="#marinetools-temporal-fdist-package" title="Permalink to this headline">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="module-marinetools.temporal.fdist.copula">
+<span id="marinetools-temporal-fdist-copula-module"></span><h2>marinetools.temporal.fdist.copula module<a class="headerlink" href="#module-marinetools.temporal.fdist.copula" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="marinetools.temporal.fdist.copula.Copula">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">marinetools.temporal.fdist.copula.</span></span><span class="sig-name descname"><span class="pre">Copula</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">family</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.fdist.copula.Copula" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This class estimates the copula parameter for the joint random variable. Copulas of Clayton, Frank y Gumbel are available.
+The base file comes from the ambhas 0.4.0 module of Sat Kumar Tomer, <a class="reference external" href="http://civil.iisc.ernet.in/~satkumar/">http://civil.iisc.ernet.in/~satkumar/</a>,
+<a class="reference external" href="mailto:satkumartomer%40gmail.com">satkumartomer<span>@</span>gmail<span>.</span>com</a>’</p>
+<dl class="simple">
+<dt>Some modifications are:</dt><dd><ol class="arabic simple">
+<li><p>Conditional copulas included for that families</p></li>
+<li><p>The package statistics is replaced by sklearn.neighbors.KernelDensity</p></li>
+</ol>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="marinetools.temporal.fdist.copula.Copula.estimate">
+<span class="sig-name descname"><span class="pre">estimate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.fdist.copula.Copula.estimate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Estimates the mean, std, iqr for the generated ensemble</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>*</em>) – X variable. Defaults to None.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>mean of the simulated ensemble
+* Y1_std (np.array): std of the simulated ensemble
+* Y1_ll (np.array): lower limit of the simulated ensemble
+* Y1_ul (np.array): upper limit of the simulated ensemble</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p>Y1_mean (np.array)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="marinetools.temporal.fdist.copula.Copula.generate_C">
+<span class="sig-name descname"><span class="pre">generate_C</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">u</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.fdist.copula.Copula.generate_C" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates a random vector of length n for variables x and y if U is not given and
+a vector of conditional random variables to U otherwise.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>u</strong> (<em>*</em>) – vector u (cdf of x)</p></li>
+<li><p><strong>v</strong> (<em>*</em>) – vector v (cdf of y)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="marinetools.temporal.fdist.copula.Copula.generate_cond">
+<span class="sig-name descname"><span class="pre">generate_cond</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.fdist.copula.Copula.generate_cond" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates the values of V given U using the conditional copula</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="marinetools.temporal.fdist.copula.Copula.generate_uv">
+<span class="sig-name descname"><span class="pre">generate_uv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.fdist.copula.Copula.generate_uv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Random variables u, v are generated</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>n</strong> (<em>-</em>) – number of elements of the copula. Defaults to 1000.</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="marinetools.temporal.fdist.copula.Copula.generate_xy">
+<span class="sig-name descname"><span class="pre">generate_xy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.fdist.copula.Copula.generate_xy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates a random vector of length n for variables x and y when U is not given and
+a vector of conditional V to U otherwise</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>n</strong> (<em>*</em>) – no of elements. Defaults to 0.</p>
+</dd>
+</dl>
+</dd></dl>
+</dd></dl>
+</section>
+<section id="module-marinetools.temporal.fdist.statistical_fit">
+<span id="marinetools-temporal-fdist-statistical-fit-module"></span><h2>marinetools.temporal.fdist.statistical_fit module<a class="headerlink" href="#module-marinetools.temporal.fdist.statistical_fit" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="marinetools.temporal.fdist.statistical_fit.best_params">
+<span class="sig-prename descclassname"><span class="pre">marinetools.temporal.fdist.statistical_fit.</span></span><span class="sig-name descname"><span class="pre">best_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distrib</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tail</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.fdist.statistical_fit.best_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the best parameters of a simple probability model attending to the rmse of the pdf</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>*</em>) – raw time series</p></li>
+<li><p><strong>bins</strong> (<em>*</em>) – no. of bins for the histogram</p></li>
+<li><p><strong>distrib</strong> (<em>*</em>) – name of the probability model</p></li>
+<li><p><strong>tail</strong> (<em>*</em>) – If it is fit a tail or not. Defaults to False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the estimated parameters</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p>params (list)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="marinetools.temporal.fdist.statistical_fit.cdf">
+<span class="sig-prename descclassname"><span class="pre">marinetools.temporal.fdist.statistical_fit.</span></span><span class="sig-name descname"><span class="pre">cdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ppf</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.fdist.statistical_fit.cdf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the cumulative distribution function</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>*</em>) – raw time series</p></li>
+<li><p><strong>param</strong> (<em>*</em>) – the parameters of the probability model</p></li>
+<li><p><strong>ppf</strong> (<em>*</em>) – boolean for selecting the method for the computation. Defaults is False (creating a previous mesh of data). False is computed from the probability models (sometimes it is not possible).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the non-excedence probability</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p>prob (pd.DataFrame)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="marinetools.temporal.fdist.statistical_fit.emp">
+<span class="sig-prename descclassname"><span class="pre">marinetools.temporal.fdist.statistical_fit.</span></span><span class="sig-name descname"><span class="pre">emp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pemp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wind_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.02</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.fdist.statistical_fit.emp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the non-stationary empirical percentile of data</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>*</em>) – raw time series</p></li>
+<li><p><strong>pemp</strong> (<em>*</em>) – list with the empirical percentiles to be computed</p></li>
+<li><p><strong>variable</strong> (<em>*</em>) – the name of the variable</p></li>
+<li><p><strong>wind_length</strong> (<em>*</em>) – window length in term of the normalize time. Defaults to 1/50.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the data with new columns of percentiles</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p>data (pd.DataFrame)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="marinetools.temporal.fdist.statistical_fit.ensemble_cdf">
+<span class="sig-prename descclassname"><span class="pre">marinetools.temporal.fdist.statistical_fit.</span></span><span class="sig-name descname"><span class="pre">ensemble_cdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[4383,</span> <span class="pre">250]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.fdist.statistical_fit.ensemble_cdf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the ensemble of the cumulative distribution function for several models</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>*</em>) – raw data</p></li>
+<li><p><strong>param</strong> (<em>*</em>) – the parameters of the probability model</p></li>
+<li><p><strong>variable</strong> (<em>*</em>) – name of the variable</p></li>
+<li><p><strong>nodes</strong> (<em>*</em>) – no of nodes in the time and variable axes. Defaults to [4383, 250].</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the non-stationary non-excedance probability</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p>cdfs (pd.DataFrame)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="marinetools.temporal.fdist.statistical_fit.ensemble_ppf">
+<span class="sig-prename descclassname"><span class="pre">marinetools.temporal.fdist.statistical_fit.</span></span><span class="sig-name descname"><span class="pre">ensemble_ppf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[4383,</span> <span class="pre">250]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.fdist.statistical_fit.ensemble_ppf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the inverse of the cumulative distribution function</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>*</em>) – raw data</p></li>
+<li><p><strong>param</strong> (<em>*</em>) – the parameters of the probability model</p></li>
+<li><p><strong>variable</strong> (<em>*</em>) – name of the variable</p></li>
+<li><p><strong>nodes</strong> (<em>*</em>) – no of nodes in the time and variable axes. Defaults to [4383, 250].</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the raw time series</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p>df (pd.DataFrame)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="marinetools.temporal.fdist.statistical_fit.fit">
+<span class="sig-prename descclassname"><span class="pre">marinetools.temporal.fdist.statistical_fit.</span></span><span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df_</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">par0</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode_</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.fdist.statistical_fit.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fits the data to the given probability model</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>*</em>) – raw data</p></li>
+<li><p><strong>param</strong> (<em>*</em>) – the parameters of the analysis</p></li>
+<li><p><strong>par0</strong> (<em>*</em>) – the guess parameters of the probability model</p></li>
+<li><p><strong>mode</strong> (<em>*</em>) – components of the current mode</p></li>
+<li><p><strong>ref</strong> (<em>*</em>) – log-likelihood value of the reference order</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the fit parameters
+* res[‘fun’] (float): the value of the log-likelihood function</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p>res[‘x’] (list)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="marinetools.temporal.fdist.statistical_fit.fit_">
+<span class="sig-prename descclassname"><span class="pre">marinetools.temporal.fdist.statistical_fit.</span></span><span class="sig-name descname"><span class="pre">fit_</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.fdist.statistical_fit.fit_" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fits a simple probability model and computes the sse with the empirical pdf</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>*</em>) – raw time series</p></li>
+<li><p><strong>bins</strong> (<em>*</em>) – no. of bins for the histogram</p></li>
+<li><p><strong>model</strong> (<em>*</em>) – name of the probability model</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the parameters computed</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p>results (np.array)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="marinetools.temporal.fdist.statistical_fit.fourier_expansion">
+<span class="sig-prename descclassname"><span class="pre">marinetools.temporal.fdist.statistical_fit.</span></span><span class="sig-name descname"><span class="pre">fourier_expansion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">par</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.fdist.statistical_fit.fourier_expansion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepares the initial guess and estimates the n-order non-stationary parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>*</em>) – raw data</p></li>
+<li><p><strong>par</strong> (<em>*</em>) – the guess parameters of the probability model</p></li>
+<li><p><strong>param</strong> (<em>*</em>) – the parameters of the analysis</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>parameters of the first order
+* llf (dict): log-likelihood value of the first order
+* mode (dict): parameter of the first order</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p>par (dict)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="marinetools.temporal.fdist.statistical_fit.get_params">
+<span class="sig-prename descclassname"><span class="pre">marinetools.temporal.fdist.statistical_fit.</span></span><span class="sig-name descname"><span class="pre">get_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">par</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imod</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_expans</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.fdist.statistical_fit.get_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the parameters of the probability models for fitting</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>*</em>) – raw data</p></li>
+<li><p><strong>param</strong> (<em>*</em>) – the parameters of the analysis</p></li>
+<li><p><strong>par</strong> (<em>*</em>) – the guess parameters of the probability model</p></li>
+<li><p><strong>imod</strong> (<em>*</em>) – combination of modes for fitting</p></li>
+<li><p><strong>t_expans</strong> (<em>*</em>) – the variability of the modes</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the parameters
+* esc (list): weight of the probability models</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p>df (pd.DataFrame)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="marinetools.temporal.fdist.statistical_fit.initial_params">
+<span class="sig-prename descclassname"><span class="pre">marinetools.temporal.fdist.statistical_fit.</span></span><span class="sig-name descname"><span class="pre">initial_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">par</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.fdist.statistical_fit.initial_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepares the parameters from previous fit to the following</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>param</strong> (<em>*</em>) – the parameters of the analysis</p></li>
+<li><p><strong>par</strong> (<em>*</em>) – the guess parameters of the probability model</p></li>
+<li><p><strong>pos</strong> (<em>*</em>) – location to place the new terms for the fit</p></li>
+<li><p><strong>imode</strong> (<em>*</em>) – combination of modes for fitting</p></li>
+<li><p><strong>comp</strong> (<em>*</em>) – components of the current mode</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>initial guess parameters</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p>par0 (list)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="marinetools.temporal.fdist.statistical_fit.inverse_transform">
+<span class="sig-prename descclassname"><span class="pre">marinetools.temporal.fdist.statistical_fit.</span></span><span class="sig-name descname"><span class="pre">inverse_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ensemble</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.fdist.statistical_fit.inverse_transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the inverse of the transformation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>pd.DataFrame</em>) – raw timeseries</p></li>
+<li><p><strong>params</strong> (<em>dict</em>) – parameters of the model</p></li>
+<li><p><strong>ensemble</strong> (<em>bool</em><em>, </em><em>optional</em>) – True or False</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the inverse of the transform of data</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="marinetools.temporal.fdist.statistical_fit.matching_lower_bound">
+<span class="sig-prename descclassname"><span class="pre">marinetools.temporal.fdist.statistical_fit.</span></span><span class="sig-name descname"><span class="pre">matching_lower_bound</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">par</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.fdist.statistical_fit.matching_lower_bound" title="Permalink to this definition">¶</a></dt>
+<dd><p>Matching conditions between two probability models (PMs). Lower refers to the
+low tail-body PMs in the case of fitting three PMs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>par</strong> (<em>dict</em>) – parameters of the usual dictionary format</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>[description]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>[type]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="marinetools.temporal.fdist.statistical_fit.matching_upper_bound">
+<span class="sig-prename descclassname"><span class="pre">marinetools.temporal.fdist.statistical_fit.</span></span><span class="sig-name descname"><span class="pre">matching_upper_bound</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">par</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.fdist.statistical_fit.matching_upper_bound" title="Permalink to this definition">¶</a></dt>
+<dd><p>Matching conditions between two probability models (PMs). Upper refers to the
+low tail-body PMs for fitting three PMs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>par</strong> (<em>dict</em>) – parameters of the usual dictionary format</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>[description]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>[type]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="marinetools.temporal.fdist.statistical_fit.nllf">
+<span class="sig-prename descclassname"><span class="pre">marinetools.temporal.fdist.statistical_fit.</span></span><span class="sig-name descname"><span class="pre">nllf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">par</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_expans</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.fdist.statistical_fit.nllf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the negative log-likelyhood value</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>par</strong> (<em>*</em>) – the guess parameters of the probability model</p></li>
+<li><p><strong>df</strong> (<em>*</em>) – raw data</p></li>
+<li><p><strong>imod</strong> (<em>*</em>) – combination of modes for fitting</p></li>
+<li><p><strong>param</strong> (<em>*</em>) – the parameters of the analysis</p></li>
+<li><p><strong>t_expans</strong> (<em>*</em>) – the variability of the modes</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>negative log-likelyhood value</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p>nllf (float)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="marinetools.temporal.fdist.statistical_fit.nonst_analysis">
+<span class="sig-prename descclassname"><span class="pre">marinetools.temporal.fdist.statistical_fit.</span></span><span class="sig-name descname"><span class="pre">nonst_analysis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.fdist.statistical_fit.nonst_analysis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Makes a non-stationary analysis for several modes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>*</em>) – raw time series</p></li>
+<li><p><strong>param</strong> (<em>*</em>) – guess parameters of the model</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>parameters of the model</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p>param (dict)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="marinetools.temporal.fdist.statistical_fit.nonst_fit">
+<span class="sig-prename descclassname"><span class="pre">marinetools.temporal.fdist.statistical_fit.</span></span><span class="sig-name descname"><span class="pre">nonst_fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.fdist.statistical_fit.nonst_fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fits a non-stationary probability model</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>*</em>) – raw time series</p></li>
+<li><p><strong>param</strong> (<em>*</em>) – the guess parameters of the model</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the best parameters
+* bic (float): the Bayesian information criteria</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p>par (list)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="marinetools.temporal.fdist.statistical_fit.numerical_cdf_pdf_at_n">
+<span class="sig-prename descclassname"><span class="pre">marinetools.temporal.fdist.statistical_fit.</span></span><span class="sig-name descname"><span class="pre">numerical_cdf_pdf_at_n</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.01</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.fdist.statistical_fit.numerical_cdf_pdf_at_n" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the cdf and pdf numerically at a given time “n” (normalized year)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>float</em>) – a value in normalized period</p></li>
+<li><p><strong>param</strong> (<em>dict</em>) – input parameters</p></li>
+<li><p><strong>variable</strong> (<em>str</em>) – Name of the variable.</p></li>
+<li><p><strong>alpha</strong> (<em>float</em><em>, </em><em>optional</em>) – Resolution. Defaults to 0.01.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the numerical pdf and cdf</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="marinetools.temporal.fdist.statistical_fit.params_t_expansion">
+<span class="sig-prename descclassname"><span class="pre">marinetools.temporal.fdist.statistical_fit.</span></span><span class="sig-name descname"><span class="pre">params_t_expansion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mod</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nper</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.fdist.statistical_fit.params_t_expansion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the oscillatory dependency in time of the parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mod</strong> (<em>*</em>) – maximum mode of the oscillatory dependency</p></li>
+<li><p><strong>param</strong> (<em>*</em>) – the parameters</p></li>
+<li><p><strong>nper</strong> (<em>*</em>) – time series of normalize year</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the variability of every mode</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p>t_expans (np.ndarray)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="marinetools.temporal.fdist.statistical_fit.ppf">
+<span class="sig-prename descclassname"><span class="pre">marinetools.temporal.fdist.statistical_fit.</span></span><span class="sig-name descname"><span class="pre">ppf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ppf</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.fdist.statistical_fit.ppf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the inverse of the probability function</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>*</em>) – raw time series</p></li>
+<li><p><strong>param</strong> (<em>*</em>) – the parameters of the probability model</p></li>
+<li><p><strong>ppf</strong> (<em>*</em>) – boolean for selecting the method for the computation. Defaults is True (creating a previous mesh of data). False is computed from the probabilty models (sometimes it is not possible).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>inverse of the cdf</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>df (pd.DataFrame)</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="marinetools.temporal.fdist.statistical_fit.print_message">
+<span class="sig-prename descclassname"><span class="pre">marinetools.temporal.fdist.statistical_fit.</span></span><span class="sig-name descname"><span class="pre">print_message</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">res</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.fdist.statistical_fit.print_message" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prints the messages during the computation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>res</strong> (<em>*</em>) – result from the fitting algorithm</p></li>
+<li><p><strong>j</strong> (<em>*</em>) – no. of iteration</p></li>
+<li><p><strong>mode</strong> (<em>*</em>) – the current mode</p></li>
+<li><p><strong>ref</strong> (<em>*</em>) – reference value of previous nllf</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="marinetools.temporal.fdist.statistical_fit.st_analysis">
+<span class="sig-prename descclassname"><span class="pre">marinetools.temporal.fdist.statistical_fit.</span></span><span class="sig-name descname"><span class="pre">st_analysis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.fdist.statistical_fit.st_analysis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fits stationary simple or mixed models</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>-</em>) – raw time series</p></li>
+<li><p><strong>param</strong> (<em>-</em>) – guess parameters for the analysis. More detailed information in ‘analysis’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>The parameters and the mode of the fit</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="marinetools.temporal.fdist.statistical_fit.transform">
+<span class="sig-prename descclassname"><span class="pre">marinetools.temporal.fdist.statistical_fit.</span></span><span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.fdist.statistical_fit.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Normalized the input data given a normalized method (Box-Cox or Yeo-Johnson)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>[</em><em>pd.DataFrame</em><em>]</em>) – input timeseries</p></li>
+<li><p><strong>params</strong> (<em>[</em><em>dict</em><em>]</em>) – parameters which can include</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>normalized input data
+params: a dictionary with lambda of transformation</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>data</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="marinetools.temporal.fdist.statistical_fit.wrap_norm">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">marinetools.temporal.fdist.statistical_fit.</span></span><span class="sig-name descname"><span class="pre">wrap_norm</span></span><a class="headerlink" href="#marinetools.temporal.fdist.statistical_fit.wrap_norm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.stats._distn_infrastructure.rv_continuous</span></code></p>
+<p>Wrapped normal probability model</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="marinetools.temporal.fdist.statistical_fit.wrap_norm.cdf">
+<span class="sig-name descname"><span class="pre">cdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.fdist.statistical_fit.wrap_norm.cdf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the cumulative distribution</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
+<li><p><strong>loc</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
+<li><p><strong>scale</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>[description]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>[type]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="marinetools.temporal.fdist.statistical_fit.wrap_norm.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.fdist.statistical_fit.wrap_norm.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit the loc and scale parameters to the data</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>[description]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>[type]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="marinetools.temporal.fdist.statistical_fit.wrap_norm.logpdf">
+<span class="sig-name descname"><span class="pre">logpdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.fdist.statistical_fit.wrap_norm.logpdf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the logarithmic probability density</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>[</em><em>type</em><em>]</em>) – data</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>[description]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>[type]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="marinetools.temporal.fdist.statistical_fit.wrap_norm.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.fdist.statistical_fit.wrap_norm.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>[summary]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>[description]</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>[type]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="marinetools.temporal.fdist.statistical_fit.wrap_norm.nllf">
+<span class="sig-name descname"><span class="pre">nllf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.fdist.statistical_fit.wrap_norm.nllf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the negative likelyhood function</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>x0</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>[description]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>[type]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="marinetools.temporal.fdist.statistical_fit.wrap_norm.pdf">
+<span class="sig-name descname"><span class="pre">pdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.fdist.statistical_fit.wrap_norm.pdf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the probability density</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>[</em><em>type</em><em>]</em>) – data</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>[description]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>[type]</p>
+</dd>
+</dl>
+</dd></dl>
+</dd></dl>
+</section>
+<section id="module-marinetools.temporal.fdist">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-marinetools.temporal.fdist" title="Permalink to this headline">¶</a></h2>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="marinetools.utils.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">marinetools.utils package</div>
+              </div>
+              <svg><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="marinetools.temporal.html">
+              <svg><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">marinetools.temporal package</div>
+                
+              </div>
+            </a>
+        </div>
+
+        <div class="related-information">
+              Copyright &#169; 2022, Environmental Fluid Dynamics, University of Granada (Spain) |
+            Built with <a href="https://www.sphinx-doc.org/">Sphinx</a>
+              and
+              <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+              <a href="https://github.com/pradyunsg/furo">Furo theme</a>. |
+            <a class="muted-link" href="_sources/marinetools.temporal.fdist.rst.txt"
+               rel="nofollow">
+              Show Source
+            </a>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            Contents
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">marinetools.temporal.fdist package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-marinetools.temporal.fdist.copula">marinetools.temporal.fdist.copula module</a></li>
+<li><a class="reference internal" href="#module-marinetools.temporal.fdist.statistical_fit">marinetools.temporal.fdist.statistical_fit module</a></li>
+<li><a class="reference internal" href="#module-marinetools.temporal.fdist">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/scripts/main.js"></script>
+    </body>
+</html>

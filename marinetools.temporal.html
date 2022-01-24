@@ -1,0 +1,653 @@
+<!doctype html>
+<html class="no-js">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="marinetools.temporal.fdist package" href="marinetools.temporal.fdist.html" /><link rel="prev" title="marinetools.graphics package" href="marinetools.graphics.html" />
+
+    <meta name="generator" content="sphinx-4.4.0, furo 2021.10.09"/>
+        <title>marinetools.temporal package - marinetools documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  body[data-theme="dark"] {
+    --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+  }
+  @media (prefers-color-scheme: dark) {
+    body:not([data-theme="light"]) {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+  }
+</style></head>
+  <body>
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path stroke="none" d="M0 0h24v24H0z" />
+      <line x1="4" y1="6" x2="20" y2="6" />
+      <line x1="10" y1="12" x2="20" y2="12" />
+      <line x1="6" y1="18" x2="20" y2="18" />
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="index.html"><div class="brand">marinetools  documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
+  
+  
+  <span class="sidebar-brand-text">marinetools  documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="search.html" role="search">
+  <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current has-children"><a class="reference internal" href="modules.html">src</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2 current has-children"><a class="reference internal" href="marinetools.html">marinetools package</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="marinetools.graphics.html">marinetools.graphics package</a></li>
+<li class="toctree-l3 current has-children current-page"><a class="current reference internal" href="#">marinetools.temporal package</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="marinetools.temporal.fdist.html">marinetools.temporal.fdist package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="marinetools.utils.html">marinetools.utils package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <section id="marinetools-temporal-package">
+<h1>marinetools.temporal package<a class="headerlink" href="#marinetools-temporal-package" title="Permalink to this headline">¶</a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="marinetools.temporal.fdist.html">marinetools.temporal.fdist package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="marinetools.temporal.fdist.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="marinetools.temporal.fdist.html#module-marinetools.temporal.fdist.copula">marinetools.temporal.fdist.copula module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="marinetools.temporal.fdist.html#module-marinetools.temporal.fdist.statistical_fit">marinetools.temporal.fdist.statistical_fit module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="marinetools.temporal.fdist.html#module-marinetools.temporal.fdist">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="module-marinetools.temporal.analysis">
+<span id="marinetools-temporal-analysis-module"></span><h2>marinetools.temporal.analysis module<a class="headerlink" href="#module-marinetools.temporal.analysis" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="marinetools.temporal.analysis.check_dependencies_params">
+<span class="sig-prename descclassname"><span class="pre">marinetools.temporal.analysis.</span></span><span class="sig-name descname"><span class="pre">check_dependencies_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.analysis.check_dependencies_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks the input parameters and includes some required arguments for the computation of multivariate dependencies</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>param</strong> (<em>*</em>) – the initial guess parameters of the probability models</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>checked and updated parameters</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p>param (dict)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="marinetools.temporal.analysis.check_marginal_params">
+<span class="sig-prename descclassname"><span class="pre">marinetools.temporal.analysis.</span></span><span class="sig-name descname"><span class="pre">check_marginal_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.analysis.check_marginal_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks the input parameters and includes some required arguments for the computation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>param</strong> (<em>*</em>) – the initial guess parameters of the probability models (see the docs of marginalfit)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>checked and updated parameters</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p>param (dict)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="marinetools.temporal.analysis.dependencies">
+<span class="sig-prename descclassname"><span class="pre">marinetools.temporal.analysis.</span></span><span class="sig-name descname"><span class="pre">dependencies</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.analysis.dependencies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the temporal dependency using a VAR model (Solari &amp; van Gelder, 2011;
+Solari &amp; Losada, 2011).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>*</em>) – raw time series</p></li>
+<li><p><strong>param</strong> (<em>*</em>) – <p>parameters of dt.</p>
+<ul>
+<li><p>’mvar’ is the main variable,</p></li>
+<li><p>’threshold’ stands for the threshold of the main variable,</p></li>
+<li><p>’vars’ is a list with the name of all variables,</p></li>
+<li><p>’varord’ is the order of the VAR model,</p></li>
+<li><p>’events’ is True or False standing for storm analysis (Lira-Loarca et al, 2020)
+or Full simulation,</p></li>
+<li><p>’fname’ is output file name.</p></li>
+</ul>
+</p></li>
+<li><p><strong>method</strong> (<em>*</em>) – name of the multivariate method of dependence. Defaults to “VAR”.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>parameters of the fitting process</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p>df_dt (dict)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="marinetools.temporal.analysis.ensemble_dt">
+<span class="sig-prename descclassname"><span class="pre">marinetools.temporal.analysis.</span></span><span class="sig-name descname"><span class="pre">ensemble_dt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">models</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">percentiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'equally'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.analysis.ensemble_dt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the ensemble of multivariate and temporal dependency parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>models</strong> (<em>*</em>) – models where parameters of temporal dependencies are saved</p></li>
+<li><p><strong>percentiles</strong> (<em>*</em>) – “equally” is equally probability is given for RCMs
+and a list with percentiles of every RCMs if not</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>[description]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>[type]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="marinetools.temporal.analysis.marginalfit">
+<span class="sig-prename descclassname"><span class="pre">marinetools.temporal.analysis.</span></span><span class="sig-name descname"><span class="pre">marginalfit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.analysis.marginalfit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fits a stationary (or not), simple or mixed probability model to data. Additional
+information can be found in Cobos et al., 2022, ‘MarineTools.temporal: A Python
+package to simulate Earth and environmental time series’. Environmental Modelling
+and Software.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>*</em>) – the raw time series</p></li>
+<li><p><strong>parameters</strong> (<em>*</em>) – <p>the initial guess parameters of the probability models.</p>
+<ul>
+<li><p>’var’ key is a  string with the name of the variable,</p></li>
+<li><p>’type’:</p></li>
+<li><p>’fun’ is a list within strings with the name of the probability model,</p></li>
+<li><p>’non_stat_analysis’ stand for stationary (False) or not (True),</p></li>
+<li><p>’ws_ps’: initial guess of percentiles or weights of PMs</p></li>
+<li><p>’basis_function’ is an option to specify the GFS expansion that includes:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>’method’: a string with an option of the GFS</p></li>
+<li><p>’noterms’: number of terms of GFS</p></li>
+<li><p>’periods’: is a list with periods of oscillation for NS-PMs ,</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>’transform’ stand for normalization that includes:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>’make’:</p></li>
+<li><p>’method’:</p></li>
+<li><p>’plot’:</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>’optimize’: a dictionary with some initial parameters for the optimization
+method (see scipy.optimize.minimize), some options are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>’method’: “SLSQP”,</p></li>
+<li><p>’maxiter’: 1e2,</p></li>
+<li><p>’ftol’: 1e-4</p></li>
+<li><p>’eps’: 1e-7</p></li>
+<li><p>’bounds’: 0.5</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>giter: number of global iterations. Repeat the minimization algorithm
+changing the initial guess</p></li>
+<li><p>’mode’: a list with the mode to be computed independently,</p></li>
+<li><p>’par’: initial guess of the parameters for the mode given</p></li>
+<li><p>’folder_name’: string where the folder where the analysis will be saved
+(optional)</p></li>
+<li><p>’file_name’: string where it will be saved the analysis (optional)</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<ul>
+<li><dl>
+<dt>param = {‘Hs’: {‘var’: ‘Hs’,</dt><dd><blockquote>
+<div><p>‘fun’: {0: ‘norm’},
+‘type’: ‘linear’ (default) or ‘circular’,
+‘non_stat_analysis’: True (default), False,
+‘basis_functions’: None or a list with:</p>
+<blockquote>
+<div><p>{“method”: “trigonometric”, “sinusoidal”, …
+“noterms”: int,
+“periods”: [1, 2, 4, …]}</p>
+</div></blockquote>
+<p>‘ws_ps’: 1 or a list,
+‘transform’: None or a list with:</p>
+<blockquote>
+<div><p>{“make”: True,
+“plot”: False,
+“method”: “box-cox”}, or “yeo-johnson}</p>
+</div></blockquote>
+<p>‘mode’: [6] or [2,2] …
+‘par’: a list with initial parameters if mode is given
+‘optimization’: {‘method’: ‘SLSQP’ (default), ‘dual_annealing’,</p>
+<blockquote>
+<div><p>‘differential_evolution’ or ‘shgo’,
+‘eps’, ‘ftol’, ‘maxiter’, ‘bounds’},</p>
+</div></blockquote>
+<p>‘giter’: 10,
+‘bic’: True or False,
+‘folder_name’: ‘marginalfit’
+‘file_name’: if not given, it is created from input parameters
+}</p>
+</div></blockquote>
+<p>}</p>
+</dd>
+</dl>
+</li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the fitting parameters</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>dict</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="marinetools.temporal.analysis.nanoise">
+<span class="sig-prename descclassname"><span class="pre">marinetools.temporal.analysis.</span></span><span class="sig-name descname"><span class="pre">nanoise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.analysis.nanoise" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds noise to time series for better estimations</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>*</em>) – raw time series</p></li>
+<li><p><strong>variable</strong> (<em>*</em>) – variable to apply noise</p></li>
+<li><p><strong>remove</strong> (<em>*</em>) – if True filtered data is removed</p></li>
+<li><p><strong>filter</strong> (<em>*</em>) – lower limit of values to be filtered. See query pandas DataFrame.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>time series with noise</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p>df_out (pd.DataFrame)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="marinetools.temporal.analysis.show_init_message">
+<span class="sig-prename descclassname"><span class="pre">marinetools.temporal.analysis.</span></span><span class="sig-name descname"><span class="pre">show_init_message</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.analysis.show_init_message" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="marinetools.temporal.analysis.varfit">
+<span class="sig-prename descclassname"><span class="pre">marinetools.temporal.analysis.</span></span><span class="sig-name descname"><span class="pre">varfit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.analysis.varfit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the coefficientes of the VAR(p) model and chooses the model with lowest BIC.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>*</em>) – normalize data with its probability model</p></li>
+<li><p><strong>order</strong> (<em>*</em>) – maximum order (p) of the VAR model</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>parameter of the temporal dependency using VAR model</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p>par_dt (dict)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="marinetools.temporal.analysis.varfit_OLS">
+<span class="sig-prename descclassname"><span class="pre">marinetools.temporal.analysis.</span></span><span class="sig-name descname"><span class="pre">varfit_OLS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.analysis.varfit_OLS" title="Permalink to this definition">¶</a></dt>
+<dd><p>Estimates the parameters of VAR using the RMSE described in Lutkepohl (ecs. 3.2.1 and 3.2.10)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>y</strong> (<em>*</em>) – X Matrix in Lutkepohl</p></li>
+<li><p><strong>z</strong> (<em>*</em>) – Z Matrix in Lutkepohl</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>matrices B, Q, y U
+* bic (float): Bayesian Information Criteria
+* R2adj (float): correlation factor</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p>df (dict)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+</section>
+<section id="module-marinetools.temporal.simulation">
+<span id="marinetools-temporal-simulation-module"></span><h2>marinetools.temporal.simulation module<a class="headerlink" href="#module-marinetools.temporal.simulation" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="marinetools.temporal.simulation.check_simulation_parameters">
+<span class="sig-prename descclassname"><span class="pre">marinetools.temporal.simulation.</span></span><span class="sig-name descname"><span class="pre">check_simulation_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.simulation.check_simulation_parameters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="marinetools.temporal.simulation.class_seasons">
+<span class="sig-prename descclassname"><span class="pre">marinetools.temporal.simulation.</span></span><span class="sig-name descname"><span class="pre">class_seasons</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type_</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'WSSF'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.simulation.class_seasons" title="Permalink to this definition">¶</a></dt>
+<dd><p>Obtains the season of any date</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>date</strong> (<em>*</em>) – starting date of the event</p></li>
+<li><p><strong>tye</strong> (<em>*</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the season</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p>season (str)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="marinetools.temporal.simulation.simulation">
+<span class="sig-prename descclassname"><span class="pre">marinetools.temporal.simulation.</span></span><span class="sig-name descname"><span class="pre">simulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tidalConstituents</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dur_storm_calms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">pandas.core.frame.DataFrame</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">196189</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ensemble</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.simulation.simulation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simulates time series with the probability model given in param and the temporal dependency given in param[“TD”]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>param</strong> (<em>*</em>) – the probability models of every variable</p></li>
+<li><p><strong>tidalConstituents</strong> (<em>*</em>) – tidal constituents required to compute
+the tidal elevation and the mean sea level (Códiga, 2011). Defaults is none.</p></li>
+<li><p><strong>dur_storm_calms</strong> (<em>*</em>) – time series of storm events</p></li>
+<li><p><strong>seed</strong> (<em>*</em>) – a value to create a non-random simulation (mainly for debugging actions)</p></li>
+<li><p><strong>ensemble</strong> (<em>*</em>) – True is RCMs parameters are the input data and
+an ensemble analysis want to be performed</p></li>
+<li><p><strong>include</strong> (<em>*</em>) – include some determinist time series given by the user</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>Saved files with simulated time series</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="marinetools.temporal.simulation.var_simulation">
+<span class="sig-prename descclassname"><span class="pre">marinetools.temporal.simulation.</span></span><span class="sig-name descname"><span class="pre">var_simulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">par</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lsim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distribution</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#marinetools.temporal.simulation.var_simulation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates new normalized multivariate time series</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>par</strong> (<em>*</em>) – paramaters of the VAR adjustment</p></li>
+<li><p><strong>lsim</strong> (<em>*</em>) – length of the new time series</p></li>
+<li><p><strong>distribution</strong> (<em>*</em>) – name of the probability model acccording to scipy.stats</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a multivariate time series</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p>zsim (np.ndarray)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+</section>
+<section id="module-marinetools.temporal">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-marinetools.temporal" title="Permalink to this headline">¶</a></h2>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="marinetools.temporal.fdist.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">marinetools.temporal.fdist package</div>
+              </div>
+              <svg><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="marinetools.graphics.html">
+              <svg><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">marinetools.graphics package</div>
+                
+              </div>
+            </a>
+        </div>
+
+        <div class="related-information">
+              Copyright &#169; 2022, Environmental Fluid Dynamics, University of Granada (Spain) |
+            Built with <a href="https://www.sphinx-doc.org/">Sphinx</a>
+              and
+              <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+              <a href="https://github.com/pradyunsg/furo">Furo theme</a>. |
+            <a class="muted-link" href="_sources/marinetools.temporal.rst.txt"
+               rel="nofollow">
+              Show Source
+            </a>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            Contents
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">marinetools.temporal package</a><ul>
+<li><a class="reference internal" href="#subpackages">Subpackages</a></li>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-marinetools.temporal.analysis">marinetools.temporal.analysis module</a></li>
+<li><a class="reference internal" href="#module-marinetools.temporal.simulation">marinetools.temporal.simulation module</a></li>
+<li><a class="reference internal" href="#module-marinetools.temporal">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/scripts/main.js"></script>
+    </body>
+</html>

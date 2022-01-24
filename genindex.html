@@ -1,0 +1,757 @@
+<!doctype html>
+<html class="no-js">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="#" /><link rel="search" title="Search" href="search.html" />
+
+    <meta name="generator" content="sphinx-4.4.0, furo 2021.10.09"/><title>Index - marinetools documentation</title>
+<link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  body[data-theme="dark"] {
+    --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+  }
+  @media (prefers-color-scheme: dark) {
+    body:not([data-theme="light"]) {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+  }
+</style></head>
+  <body>
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path stroke="none" d="M0 0h24v24H0z" />
+      <line x1="4" y1="6" x2="20" y2="6" />
+      <line x1="10" y1="12" x2="20" y2="12" />
+      <line x1="6" y1="18" x2="20" y2="18" />
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="index.html"><div class="brand">marinetools  documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
+  
+  
+  <span class="sidebar-brand-text">marinetools  documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="search.html" role="search">
+  <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="modules.html">src</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="marinetools.html">marinetools package</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="marinetools.graphics.html">marinetools.graphics package</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="marinetools.temporal.html">marinetools.temporal package</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="marinetools.temporal.fdist.html">marinetools.temporal.fdist package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="marinetools.utils.html">marinetools.utils package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          
+<section class="genindex-section">
+  <h1 id="index">Index</h1>
+  <div class="genindex-jumpbox"><a href="#A"><strong>A</strong></a> | <a href="#B"><strong>B</strong></a> | <a href="#C"><strong>C</strong></a> | <a href="#D"><strong>D</strong></a> | <a href="#E"><strong>E</strong></a> | <a href="#F"><strong>F</strong></a> | <a href="#G"><strong>G</strong></a> | <a href="#H"><strong>H</strong></a> | <a href="#I"><strong>I</strong></a> | <a href="#J"><strong>J</strong></a> | <a href="#K"><strong>K</strong></a> | <a href="#L"><strong>L</strong></a> | <a href="#M"><strong>M</strong></a> | <a href="#N"><strong>N</strong></a> | <a href="#P"><strong>P</strong></a> | <a href="#R"><strong>R</strong></a> | <a href="#S"><strong>S</strong></a> | <a href="#T"><strong>T</strong></a> | <a href="#V"><strong>V</strong></a> | <a href="#W"><strong>W</strong></a> | <a href="#X"><strong>X</strong></a></div>
+</section>
+<section id="A" class="genindex-section">
+  <h2>A</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="marinetools.utils.html#marinetools.utils.auxiliar.acorr">acorr() (in module marinetools.utils.auxiliar)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="marinetools.graphics.html#marinetools.graphics.plots.annotate_heatmap">annotate_heatmap() (in module marinetools.graphics.plots)</a>
+</li>
+        <li><a href="marinetools.utils.html#marinetools.utils.save.as_float_bool">as_float_bool() (in module marinetools.utils.save)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="B" class="genindex-section">
+  <h2>B</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="marinetools.temporal.fdist.html#marinetools.temporal.fdist.statistical_fit.best_params">best_params() (in module marinetools.temporal.fdist.statistical_fit)</a>
+</li>
+        <li><a href="marinetools.graphics.html#marinetools.graphics.plots.bivariate_ensemble_pdf">bivariate_ensemble_pdf() (in module marinetools.graphics.plots)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="marinetools.graphics.html#marinetools.graphics.plots.bivariate_pdf">bivariate_pdf() (in module marinetools.graphics.plots)</a>
+</li>
+        <li><a href="marinetools.graphics.html#marinetools.graphics.plots.boxplot">boxplot() (in module marinetools.graphics.plots)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="C" class="genindex-section">
+  <h2>C</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="marinetools.temporal.fdist.html#marinetools.temporal.fdist.statistical_fit.cdf">cdf() (in module marinetools.temporal.fdist.statistical_fit)</a>
+
+        <ul>
+          <li><a href="marinetools.temporal.fdist.html#marinetools.temporal.fdist.statistical_fit.wrap_norm.cdf">(marinetools.temporal.fdist.statistical_fit.wrap_norm method)</a>
+</li>
+        </ul></li>
+        <li><a href="marinetools.temporal.html#marinetools.temporal.analysis.check_dependencies_params">check_dependencies_params() (in module marinetools.temporal.analysis)</a>
+</li>
+        <li><a href="marinetools.temporal.html#marinetools.temporal.analysis.check_marginal_params">check_marginal_params() (in module marinetools.temporal.analysis)</a>
+</li>
+        <li><a href="marinetools.temporal.html#marinetools.temporal.simulation.check_simulation_parameters">check_simulation_parameters() (in module marinetools.temporal.simulation)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="marinetools.temporal.html#marinetools.temporal.simulation.class_seasons">class_seasons() (in module marinetools.temporal.simulation)</a>
+</li>
+        <li><a href="marinetools.temporal.fdist.html#marinetools.temporal.fdist.copula.Copula">Copula (class in marinetools.temporal.fdist.copula)</a>
+</li>
+        <li><a href="marinetools.graphics.html#marinetools.graphics.plots.corr">corr() (in module marinetools.graphics.plots)</a>
+</li>
+        <li><a href="marinetools.utils.html#marinetools.utils.read.csv">csv() (in module marinetools.utils.read)</a>
+</li>
+        <li><a href="marinetools.utils.html#marinetools.utils.save.cwriter">cwriter() (in module marinetools.utils.save)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="D" class="genindex-section">
+  <h2>D</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="marinetools.temporal.html#marinetools.temporal.analysis.dependencies">dependencies() (in module marinetools.temporal.analysis)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="E" class="genindex-section">
+  <h2>E</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="marinetools.utils.html#marinetools.utils.auxiliar.ecdf">ecdf() (in module marinetools.utils.auxiliar)</a>
+</li>
+        <li><a href="marinetools.temporal.fdist.html#marinetools.temporal.fdist.statistical_fit.emp">emp() (in module marinetools.temporal.fdist.statistical_fit)</a>
+</li>
+        <li><a href="marinetools.graphics.html#marinetools.graphics.plots.ensemble_acorr">ensemble_acorr() (in module marinetools.graphics.plots)</a>
+</li>
+        <li><a href="marinetools.temporal.fdist.html#marinetools.temporal.fdist.statistical_fit.ensemble_cdf">ensemble_cdf() (in module marinetools.temporal.fdist.statistical_fit)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="marinetools.temporal.html#marinetools.temporal.analysis.ensemble_dt">ensemble_dt() (in module marinetools.temporal.analysis)</a>
+</li>
+        <li><a href="marinetools.temporal.fdist.html#marinetools.temporal.fdist.statistical_fit.ensemble_ppf">ensemble_ppf() (in module marinetools.temporal.fdist.statistical_fit)</a>
+</li>
+        <li><a href="marinetools.utils.html#marinetools.utils.auxiliar.epdf">epdf() (in module marinetools.utils.auxiliar)</a>
+</li>
+        <li><a href="marinetools.temporal.fdist.html#marinetools.temporal.fdist.copula.Copula.estimate">estimate() (marinetools.temporal.fdist.copula.Copula method)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="F" class="genindex-section">
+  <h2>F</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="marinetools.temporal.fdist.html#marinetools.temporal.fdist.statistical_fit.fit">fit() (in module marinetools.temporal.fdist.statistical_fit)</a>
+
+        <ul>
+          <li><a href="marinetools.temporal.fdist.html#marinetools.temporal.fdist.statistical_fit.wrap_norm.fit">(marinetools.temporal.fdist.statistical_fit.wrap_norm method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="marinetools.temporal.fdist.html#marinetools.temporal.fdist.statistical_fit.fit_">fit_() (in module marinetools.temporal.fdist.statistical_fit)</a>
+</li>
+        <li><a href="marinetools.utils.html#marinetools.utils.save.formats">formats() (in module marinetools.utils.save)</a>
+</li>
+        <li><a href="marinetools.temporal.fdist.html#marinetools.temporal.fdist.statistical_fit.fourier_expansion">fourier_expansion() (in module marinetools.temporal.fdist.statistical_fit)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="G" class="genindex-section">
+  <h2>G</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="marinetools.temporal.fdist.html#marinetools.temporal.fdist.copula.Copula.generate_C">generate_C() (marinetools.temporal.fdist.copula.Copula method)</a>
+</li>
+        <li><a href="marinetools.temporal.fdist.html#marinetools.temporal.fdist.copula.Copula.generate_cond">generate_cond() (marinetools.temporal.fdist.copula.Copula method)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="marinetools.temporal.fdist.html#marinetools.temporal.fdist.copula.Copula.generate_uv">generate_uv() (marinetools.temporal.fdist.copula.Copula method)</a>
+</li>
+        <li><a href="marinetools.temporal.fdist.html#marinetools.temporal.fdist.copula.Copula.generate_xy">generate_xy() (marinetools.temporal.fdist.copula.Copula method)</a>
+</li>
+        <li><a href="marinetools.temporal.fdist.html#marinetools.temporal.fdist.statistical_fit.get_params">get_params() (in module marinetools.temporal.fdist.statistical_fit)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="H" class="genindex-section">
+  <h2>H</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="marinetools.graphics.html#marinetools.graphics.utils.handle_axis">handle_axis() (in module marinetools.graphics.utils)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="marinetools.graphics.html#marinetools.graphics.plots.heatmap">heatmap() (in module marinetools.graphics.plots)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="I" class="genindex-section">
+  <h2>I</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="marinetools.temporal.fdist.html#marinetools.temporal.fdist.statistical_fit.initial_params">initial_params() (in module marinetools.temporal.fdist.statistical_fit)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="marinetools.temporal.fdist.html#marinetools.temporal.fdist.statistical_fit.inverse_transform">inverse_transform() (in module marinetools.temporal.fdist.statistical_fit)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="J" class="genindex-section">
+  <h2>J</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="marinetools.graphics.html#marinetools.graphics.plots.joint_plot">joint_plot() (in module marinetools.graphics.plots)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="K" class="genindex-section">
+  <h2>K</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="marinetools.utils.html#marinetools.utils.read.keys_as_int">keys_as_int() (in module marinetools.utils.read)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="marinetools.utils.html#marinetools.utils.read.keys_as_nparray">keys_as_nparray() (in module marinetools.utils.read)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="L" class="genindex-section">
+  <h2>L</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="marinetools.graphics.html#marinetools.graphics.utils.labels">labels() (in module marinetools.graphics.utils)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="marinetools.temporal.fdist.html#marinetools.temporal.fdist.statistical_fit.wrap_norm.logpdf">logpdf() (marinetools.temporal.fdist.statistical_fit.wrap_norm method)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="M" class="genindex-section">
+  <h2>M</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="marinetools.temporal.html#marinetools.temporal.analysis.marginalfit">marginalfit() (in module marinetools.temporal.analysis)</a>
+</li>
+        <li>
+    marinetools
+
+        <ul>
+          <li><a href="marinetools.html#module-marinetools">module</a>
+</li>
+        </ul></li>
+        <li>
+    marinetools.graphics
+
+        <ul>
+          <li><a href="marinetools.graphics.html#module-marinetools.graphics">module</a>
+</li>
+        </ul></li>
+        <li>
+    marinetools.graphics.plots
+
+        <ul>
+          <li><a href="marinetools.graphics.html#module-marinetools.graphics.plots">module</a>
+</li>
+        </ul></li>
+        <li>
+    marinetools.graphics.utils
+
+        <ul>
+          <li><a href="marinetools.graphics.html#module-marinetools.graphics.utils">module</a>
+</li>
+        </ul></li>
+        <li>
+    marinetools.temporal
+
+        <ul>
+          <li><a href="marinetools.temporal.html#module-marinetools.temporal">module</a>
+</li>
+        </ul></li>
+        <li>
+    marinetools.temporal.analysis
+
+        <ul>
+          <li><a href="marinetools.temporal.html#module-marinetools.temporal.analysis">module</a>
+</li>
+        </ul></li>
+        <li>
+    marinetools.temporal.fdist
+
+        <ul>
+          <li><a href="marinetools.temporal.fdist.html#module-marinetools.temporal.fdist">module</a>
+</li>
+        </ul></li>
+        <li>
+    marinetools.temporal.fdist.copula
+
+        <ul>
+          <li><a href="marinetools.temporal.fdist.html#module-marinetools.temporal.fdist.copula">module</a>
+</li>
+        </ul></li>
+        <li>
+    marinetools.temporal.fdist.statistical_fit
+
+        <ul>
+          <li><a href="marinetools.temporal.fdist.html#module-marinetools.temporal.fdist.statistical_fit">module</a>
+</li>
+        </ul></li>
+        <li>
+    marinetools.temporal.simulation
+
+        <ul>
+          <li><a href="marinetools.temporal.html#module-marinetools.temporal.simulation">module</a>
+</li>
+        </ul></li>
+        <li>
+    marinetools.utils
+
+        <ul>
+          <li><a href="marinetools.utils.html#module-marinetools.utils">module</a>
+</li>
+        </ul></li>
+        <li>
+    marinetools.utils.auxiliar
+
+        <ul>
+          <li><a href="marinetools.utils.html#module-marinetools.utils.auxiliar">module</a>
+</li>
+        </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li>
+    marinetools.utils.read
+
+        <ul>
+          <li><a href="marinetools.utils.html#module-marinetools.utils.read">module</a>
+</li>
+        </ul></li>
+        <li>
+    marinetools.utils.save
+
+        <ul>
+          <li><a href="marinetools.utils.html#module-marinetools.utils.save">module</a>
+</li>
+        </ul></li>
+        <li><a href="marinetools.utils.html#marinetools.utils.read.mat">mat() (in module marinetools.utils.read)</a>
+</li>
+        <li><a href="marinetools.temporal.fdist.html#marinetools.temporal.fdist.statistical_fit.matching_lower_bound">matching_lower_bound() (in module marinetools.temporal.fdist.statistical_fit)</a>
+</li>
+        <li><a href="marinetools.temporal.fdist.html#marinetools.temporal.fdist.statistical_fit.matching_upper_bound">matching_upper_bound() (in module marinetools.temporal.fdist.statistical_fit)</a>
+</li>
+        <li><a href="marinetools.utils.html#marinetools.utils.auxiliar.mkdir">mkdir() (in module marinetools.utils.auxiliar)</a>
+</li>
+        <li>
+    module
+
+        <ul>
+          <li><a href="marinetools.html#module-marinetools">marinetools</a>
+</li>
+          <li><a href="marinetools.graphics.html#module-marinetools.graphics">marinetools.graphics</a>
+</li>
+          <li><a href="marinetools.graphics.html#module-marinetools.graphics.plots">marinetools.graphics.plots</a>
+</li>
+          <li><a href="marinetools.graphics.html#module-marinetools.graphics.utils">marinetools.graphics.utils</a>
+</li>
+          <li><a href="marinetools.temporal.html#module-marinetools.temporal">marinetools.temporal</a>
+</li>
+          <li><a href="marinetools.temporal.html#module-marinetools.temporal.analysis">marinetools.temporal.analysis</a>
+</li>
+          <li><a href="marinetools.temporal.fdist.html#module-marinetools.temporal.fdist">marinetools.temporal.fdist</a>
+</li>
+          <li><a href="marinetools.temporal.fdist.html#module-marinetools.temporal.fdist.copula">marinetools.temporal.fdist.copula</a>
+</li>
+          <li><a href="marinetools.temporal.fdist.html#module-marinetools.temporal.fdist.statistical_fit">marinetools.temporal.fdist.statistical_fit</a>
+</li>
+          <li><a href="marinetools.temporal.html#module-marinetools.temporal.simulation">marinetools.temporal.simulation</a>
+</li>
+          <li><a href="marinetools.utils.html#module-marinetools.utils">marinetools.utils</a>
+</li>
+          <li><a href="marinetools.utils.html#module-marinetools.utils.auxiliar">marinetools.utils.auxiliar</a>
+</li>
+          <li><a href="marinetools.utils.html#module-marinetools.utils.read">marinetools.utils.read</a>
+</li>
+          <li><a href="marinetools.utils.html#module-marinetools.utils.save">marinetools.utils.save</a>
+</li>
+        </ul></li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="N" class="genindex-section">
+  <h2>N</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="marinetools.temporal.fdist.html#marinetools.temporal.fdist.statistical_fit.wrap_norm.name">name() (marinetools.temporal.fdist.statistical_fit.wrap_norm method)</a>
+</li>
+        <li><a href="marinetools.temporal.html#marinetools.temporal.analysis.nanoise">nanoise() (in module marinetools.temporal.analysis)</a>
+</li>
+        <li><a href="marinetools.utils.html#marinetools.utils.read.netcdf">netcdf() (in module marinetools.utils.read)</a>
+</li>
+        <li><a href="marinetools.temporal.fdist.html#marinetools.temporal.fdist.statistical_fit.nllf">nllf() (in module marinetools.temporal.fdist.statistical_fit)</a>
+
+        <ul>
+          <li><a href="marinetools.temporal.fdist.html#marinetools.temporal.fdist.statistical_fit.wrap_norm.nllf">(marinetools.temporal.fdist.statistical_fit.wrap_norm method)</a>
+</li>
+        </ul></li>
+        <li><a href="marinetools.temporal.fdist.html#marinetools.temporal.fdist.statistical_fit.nonst_analysis">nonst_analysis() (in module marinetools.temporal.fdist.statistical_fit)</a>
+</li>
+        <li><a href="marinetools.temporal.fdist.html#marinetools.temporal.fdist.statistical_fit.nonst_fit">nonst_fit() (in module marinetools.temporal.fdist.statistical_fit)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="marinetools.graphics.html#marinetools.graphics.plots.nonstationary_cdf">nonstationary_cdf() (in module marinetools.graphics.plots)</a>
+</li>
+        <li><a href="marinetools.graphics.html#marinetools.graphics.plots.nonstationary_cdf_ensemble">nonstationary_cdf_ensemble() (in module marinetools.graphics.plots)</a>
+</li>
+        <li><a href="marinetools.utils.html#marinetools.utils.auxiliar.nonstationary_ecdf">nonstationary_ecdf() (in module marinetools.utils.auxiliar)</a>
+</li>
+        <li><a href="marinetools.utils.html#marinetools.utils.auxiliar.nonstationary_epdf">nonstationary_epdf() (in module marinetools.utils.auxiliar)</a>
+</li>
+        <li><a href="marinetools.utils.html#marinetools.utils.read.npy">npy() (in module marinetools.utils.read)</a>
+</li>
+        <li><a href="marinetools.utils.html#marinetools.utils.save.npy2json">npy2json() (in module marinetools.utils.save)</a>
+</li>
+        <li><a href="marinetools.temporal.fdist.html#marinetools.temporal.fdist.statistical_fit.numerical_cdf_pdf_at_n">numerical_cdf_pdf_at_n() (in module marinetools.temporal.fdist.statistical_fit)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="P" class="genindex-section">
+  <h2>P</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="marinetools.temporal.fdist.html#marinetools.temporal.fdist.statistical_fit.params_t_expansion">params_t_expansion() (in module marinetools.temporal.fdist.statistical_fit)</a>
+</li>
+        <li><a href="marinetools.utils.html#marinetools.utils.read.PdE">PdE() (in module marinetools.utils.read)</a>
+</li>
+        <li><a href="marinetools.temporal.fdist.html#marinetools.temporal.fdist.statistical_fit.wrap_norm.pdf">pdf() (marinetools.temporal.fdist.statistical_fit.wrap_norm method)</a>
+</li>
+        <li><a href="marinetools.graphics.html#marinetools.graphics.plots.pdf_n_i">pdf_n_i() (in module marinetools.graphics.plots)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="marinetools.graphics.html#marinetools.graphics.plots.plot_cdf">plot_cdf() (in module marinetools.graphics.plots)</a>
+</li>
+        <li><a href="marinetools.temporal.fdist.html#marinetools.temporal.fdist.statistical_fit.ppf">ppf() (in module marinetools.temporal.fdist.statistical_fit)</a>
+</li>
+        <li><a href="marinetools.utils.html#marinetools.utils.auxiliar.pre_ensemble_plot">pre_ensemble_plot() (in module marinetools.utils.auxiliar)</a>
+</li>
+        <li><a href="marinetools.temporal.fdist.html#marinetools.temporal.fdist.statistical_fit.print_message">print_message() (in module marinetools.temporal.fdist.statistical_fit)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="R" class="genindex-section">
+  <h2>R</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="marinetools.utils.html#marinetools.utils.read.rjson">rjson() (in module marinetools.utils.read)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="S" class="genindex-section">
+  <h2>S</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="marinetools.graphics.html#marinetools.graphics.plots.scatter_error_dependencies">scatter_error_dependencies() (in module marinetools.graphics.plots)</a>
+</li>
+        <li><a href="marinetools.graphics.html#marinetools.graphics.utils.show">show() (in module marinetools.graphics.utils)</a>
+</li>
+        <li><a href="marinetools.temporal.html#marinetools.temporal.analysis.show_init_message">show_init_message() (in module marinetools.temporal.analysis)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="marinetools.temporal.html#marinetools.temporal.simulation.simulation">simulation() (in module marinetools.temporal.simulation)</a>
+</li>
+        <li><a href="marinetools.temporal.fdist.html#marinetools.temporal.fdist.statistical_fit.st_analysis">st_analysis() (in module marinetools.temporal.fdist.statistical_fit)</a>
+</li>
+        <li><a href="marinetools.utils.html#marinetools.utils.auxiliar.str2fun">str2fun() (in module marinetools.utils.auxiliar)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="T" class="genindex-section">
+  <h2>T</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="marinetools.graphics.html#marinetools.graphics.plots.timeseries">timeseries() (in module marinetools.graphics.plots)</a>
+</li>
+        <li><a href="marinetools.utils.html#marinetools.utils.save.to_csv">to_csv() (in module marinetools.utils.save)</a>
+</li>
+        <li><a href="marinetools.utils.html#marinetools.utils.save.to_json">to_json() (in module marinetools.utils.save)</a>
+</li>
+        <li><a href="marinetools.utils.html#marinetools.utils.save.to_netcdf">to_netcdf() (in module marinetools.utils.save)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="marinetools.utils.html#marinetools.utils.save.to_npy">to_npy() (in module marinetools.utils.save)</a>
+</li>
+        <li><a href="marinetools.utils.html#marinetools.utils.save.to_txt">to_txt() (in module marinetools.utils.save)</a>
+</li>
+        <li><a href="marinetools.utils.html#marinetools.utils.save.to_xlsx">to_xlsx() (in module marinetools.utils.save)</a>
+</li>
+        <li><a href="marinetools.temporal.fdist.html#marinetools.temporal.fdist.statistical_fit.transform">transform() (in module marinetools.temporal.fdist.statistical_fit)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="V" class="genindex-section">
+  <h2>V</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="marinetools.temporal.html#marinetools.temporal.simulation.var_simulation">var_simulation() (in module marinetools.temporal.simulation)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="marinetools.temporal.html#marinetools.temporal.analysis.varfit">varfit() (in module marinetools.temporal.analysis)</a>
+</li>
+        <li><a href="marinetools.temporal.html#marinetools.temporal.analysis.varfit_OLS">varfit_OLS() (in module marinetools.temporal.analysis)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="W" class="genindex-section">
+  <h2>W</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="marinetools.temporal.fdist.html#marinetools.temporal.fdist.statistical_fit.wrap_norm">wrap_norm (class in marinetools.temporal.fdist.statistical_fit)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="marinetools.graphics.html#marinetools.graphics.plots.wrose">wrose() (in module marinetools.graphics.plots)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="X" class="genindex-section">
+  <h2>X</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="marinetools.utils.html#marinetools.utils.read.xlsx">xlsx() (in module marinetools.utils.read)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+
+        <div class="related-information">
+              Copyright &#169; 2022, Environmental Fluid Dynamics, University of Granada (Spain) |
+            Built with <a href="https://www.sphinx-doc.org/">Sphinx</a>
+              and
+              <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+              <a href="https://github.com/pradyunsg/furo">Furo theme</a>.
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </div>
+</div><script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/scripts/main.js"></script>
+    </body>
+</html>
