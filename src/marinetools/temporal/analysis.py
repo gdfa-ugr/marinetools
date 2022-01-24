@@ -57,32 +57,39 @@ def marginalfit(df: pd.DataFrame, parameters: dict):
     Args:
         * df (pd.DataFrame): the raw time series
         * parameters (dict): the initial guess parameters of the probability models.
+
             - 'var' key is a  string with the name of the variable,
             - 'type':
             - 'fun' is a list within strings with the name of the probability model,
             - 'non_stat_analysis' stand for stationary (False) or not (True),
             - 'ws_ps': initial guess of percentiles or weights of PMs
             - 'basis_function' is an option to specify the GFS expansion that includes:
-                - 'method': a string with an option of the GFS
-                - 'noterms': number of terms of GFS
-                - 'periods': is a list with periods of oscillation for NS-PMs ,
+
+                + 'method': a string with an option of the GFS
+                + 'noterms': number of terms of GFS
+                + 'periods': is a list with periods of oscillation for NS-PMs ,
+
             - 'transform' stand for normalization that includes:
-                - 'make':
-                - 'method':
-                - 'plot':
+
+                + 'make':
+                + 'method':
+                + 'plot':
+
             - 'optimize': a dictionary with some initial parameters for the optimization
-            method (see scipy.optimize.minimize), some options are:
-                - 'method': "SLSQP",
-                - 'maxiter': 1e2,
-                - 'ftol': 1e-4
-                - 'eps': 1e-7
-                - 'bounds': 0.5
+              method (see scipy.optimize.minimize), some options are:
+
+                + 'method': "SLSQP",
+                + 'maxiter': 1e2,
+                + 'ftol': 1e-4
+                + 'eps': 1e-7
+                + 'bounds': 0.5
+
             - giter: number of global iterations. Repeat the minimization algorithm
-            changing the initial guess
+              changing the initial guess
             - 'mode': a list with the mode to be computed independently,
             - 'par': initial guess of the parameters for the mode given
             - 'folder_name': string where the folder where the analysis will be saved
-            (optional)
+              (optional)
             - 'file_name': string where it will be saved the analysis (optional)
 
     Example:
@@ -665,14 +672,18 @@ def dependencies(df: pd.DataFrame, param: dict):
     Solari & Losada, 2011).
 
     Args:
-        - df (pd.DataFrame): raw time series
-        - param (dict): parameters of dt. 'mvar' is the main variable,
-        'threshold' stands for the threshold of the main variable,
-        'vars' is a list with the name of all variables,
-        'varord' is the order of the VAR model,
-        'events' is True or False standing for storm analysis (Lira-Loarca et al, 2020)
-            or Full simulation, 'fname' is output file name.
-        - method (string): name of the multivariate method of dependence. Defaults to "VAR".
+        * df (pd.DataFrame): raw time series
+        * param (dict): parameters of dt.
+
+            - 'mvar' is the main variable,
+            - 'threshold' stands for the threshold of the main variable,
+            - 'vars' is a list with the name of all variables,
+            - 'varord' is the order of the VAR model,
+            - 'events' is True or False standing for storm analysis (Lira-Loarca et al, 2020)
+              or Full simulation,
+            - 'fname' is output file name.
+
+        * method (string): name of the multivariate method of dependence. Defaults to "VAR".
 
     Returns:
         - df_dt (dict): parameters of the fitting process
