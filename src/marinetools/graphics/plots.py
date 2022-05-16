@@ -8,7 +8,6 @@ import numpy as np
 import pandas as pd
 import scipy.stats as st
 from marinetools.graphics.utils import handle_axis, labels, show
-from marinetools.temporal.analysis import storm_properties
 from marinetools.temporal.fdist import statistical_fit as stf
 from marinetools.temporal.fdist.copula import Copula
 from marinetools.utils import auxiliar
@@ -1505,6 +1504,9 @@ def nonstat_cdf_ensemble(
 
 def soujourn(data_1, data_2, variable, threshold, ax=None, case="above", fname=None):
     """Plots the distribution function of soujourn above or below a given threshold"""
+    # TODO: this package is not available yet.
+    from marinetools.temporal.analysis import storm_properties
+
     if case == "above":
         info = {}
         info["time_step"] = "1H"
