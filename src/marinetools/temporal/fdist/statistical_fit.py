@@ -44,23 +44,28 @@ def st_analysis(df: pd.DataFrame, param: dict):
     p = np.linspace(0, 1, len(df_sort))
 
     if (param["basis_function"]["order"] == 0) and (param["reduction"] == False):
-        percentiles = np.hstack([0, np.cumsum(param["ws_ps"])])
-        for i in param["fun"].keys():
-            filtro = (p >= percentiles[i]) & (p <= percentiles[i + 1])
-            par = param["fun"][i].fit(df_sort[filtro])
-            par0 = np.hstack([par0, par]).tolist()
+        if param["no_fun"] == 1:
+            par0 = param["fun"][0].fit(df[param["var"]])
+        elif param["no_fun"] > 1:
+            percentiles = np.hstack([0, np.cumsum(param["ws_ps"])])
+            for i in param["fun"].keys():
+                filtro = (p >= percentiles[i]) & (p <= percentiles[i + 1])
+                par = param["fun"][i].fit(df_sort[filtro])
+                par0 = np.hstack([par0, par]).tolist()
     elif param["piecewise"]:
-        percentiles = np.hstack([0, param["ws_ps"], 1])
-        df = emp(df, percentiles, param["var"])
+        thresholds = np.hstack(
+            [df[param["var"]].min(), param["ws_ps"], df[param["var"]].max()]
+        )
+        # df = emp(df, percentiles, param["var"])
         for i in param["fun"].keys():
-            filtro = (df[param["var"]] >= df["u" + str(int(i))]) & (
-                df[param["var"]] <= df["u" + str(i + 1)]
+            filtro = (df[param["var"]] >= thresholds[i]) & (
+                df[param["var"]] <= thresholds[i + 1]
             )
             par = best_params(df.loc[filtro, param["var"]], 25, param["fun"][i])
             par0 = np.hstack([par0, par]).tolist()
 
         if not param["fix_percentiles"]:
-            par0 = np.hstack([par0, st.norm.ppf(param["ws_ps"])])
+            par0 = np.hstack([par0, param["ws_ps"]])
     else:
         if param["reduction"]:
             percentiles = np.hstack([0, param["ws_ps"]])
@@ -744,7 +749,11 @@ def fit(df_: pd.DataFrame, param_: dict, par0: list, mode_: list, ref: int):
         print_message(res[j], j, mode, ref)
 
     nllf_min = min(nllfv, key=nllfv.get)
-    res = res[nllf_min]
+    if nllfv[nllf_min] > ref:
+        res["x"] = par0
+        res["fun"] = ref
+    else:
+        res = res[nllf_min]
 
     return res["x"], res["fun"]
 
@@ -766,8 +775,12 @@ def nllf(par, df, imod, param, t_expans):
     # Obtaining the parameters
     # ----------------------------------------------------------------------------------
     df, esc = get_params(df, param, par, imod, t_expans)
+    cweight_ = False
+    # for key_ in esc.keys():
+    #     if any(esc[key_] <= 0):
+    #         cweight_ = True
 
-    if (np.isnan(par).any()) | (any(esc[key_] <= 0 for key_ in esc.keys())):
+    if np.isnan(par).any() | cweight_:
         nllf = 1e10
     elif param["reduction"]:
         # ------------------------------------------------------------------------------
@@ -831,7 +844,7 @@ def nllf(par, df, imod, param, t_expans):
         # ------------------------------------------------------------------------------
         # Compute the NLLF without reducing any parameter of the probability models
         # ------------------------------------------------------------------------------
-        nllf, en, lpdf = 0, 0, []
+        nllf, en, lpdf = 0, 0, 0
 
         if param["constraints"]:
             # if not (param["type"] == "circular"):
@@ -892,92 +905,137 @@ def nllf(par, df, imod, param, t_expans):
                 iutail = df[2][param["var"]] > df[2]["u2"]
 
                 if param["no_param"][0] == 2:
-                    lpdf = np.hstack(
-                        [
-                            lpdf,
-                            param["fun"][0].logpdf(
-                                df[0].loc[iltail, "u1"]
-                                - df[0].loc[iltail, param["var"]],
-                                df[0].loc[iltail, "s"],
-                                df[0].loc[iltail, "l"],
-                            )
-                            + np.log(esc[0]),
-                        ]
+                    # lpdf += np.hstack(
+                    #     [
+                    #         lpdf,
+                    #         param["fun"][0].logpdf(
+                    #             df[0].loc[iltail, "u1"]
+                    #             - df[0].loc[iltail, param["var"]],
+                    #             df[0].loc[iltail, "s"],
+                    #             df[0].loc[iltail, "l"],
+                    #         )
+                    #         + np.log(esc[0]),
+                    #     ]
+                    # )
+                    lpdf += (
+                        param["fun"][0].logpdf(
+                            df[0].loc[iltail, "u1"] - df[0].loc[iltail, param["var"]],
+                            df[0].loc[iltail, "s"],
+                            df[0].loc[iltail, "l"],
+                        )
+                        + np.log(esc[0])
                     )
                 else:
-                    lpdf = np.hstack(
-                        [
-                            lpdf,
-                            param["fun"][0].logpdf(
-                                df[0].loc[iltail, "u1"]
-                                - df[0].loc[iltail, param["var"]],
-                                df[0].loc[iltail, "s"],
-                                df[0].loc[iltail, "l"],
-                                df[0].loc[iltail, "e"],
-                            )
-                            + np.log(esc[0]),
-                        ]
+                    # lpdf = np.hstack(
+                    #     [
+                    #         lpdf,
+                    #         param["fun"][0].logpdf(
+                    #             df[0].loc[iltail, "u1"]
+                    #             - df[0].loc[iltail, param["var"]],
+                    #             df[0].loc[iltail, "s"],
+                    #             df[0].loc[iltail, "l"],
+                    #             df[0].loc[iltail, "e"],
+                    #         )
+                    #         + np.log(esc[0]),
+                    #     ]
+                    # )
+                    lpdf += (
+                        param["fun"][0].logpdf(
+                            df[0].loc[iltail, "u1"] - df[0].loc[iltail, param["var"]],
+                            df[0].loc[iltail, "s"],
+                            df[0].loc[iltail, "l"],
+                            df[0].loc[iltail, "e"],
+                        )
+                        + np.log(esc[0])
                     )
 
                 if param["no_param"][1] == 2:
-                    lpdf = np.hstack(
-                        [
-                            lpdf,
-                            param["fun"][1].logpdf(
-                                df[1].loc[ibody, param["var"]],
-                                df[1].loc[ibody, "s"],
-                                df[1].loc[ibody, "l"],
-                            ),
-                        ]
+                    # lpdf = np.hstack(
+                    #     [
+                    #         lpdf,
+                    #         param["fun"][1].logpdf(
+                    #             df[1].loc[ibody, param["var"]],
+                    #             df[1].loc[ibody, "s"],
+                    #             df[1].loc[ibody, "l"],
+                    #         ),
+                    #     ]
+                    # )
+                    lpdf += param["fun"][1].logpdf(
+                        df[1].loc[ibody, param["var"]],
+                        df[1].loc[ibody, "s"],
+                        df[1].loc[ibody, "l"],
                     )
                 else:
-                    lpdf = np.hstack(
-                        [
-                            lpdf,
-                            param["fun"][1].logpdf(
-                                df[1].loc[ibody, param["var"]],
-                                df[1].loc[ibody, "s"],
-                                df[1].loc[ibody, "l"],
-                                df[1].loc[ibody, "e"],
-                            ),
-                        ]
+                    # lpdf = np.hstack(
+                    #     [
+                    #         lpdf,
+                    #         param["fun"][1].logpdf(
+                    #             df[1].loc[ibody, param["var"]],
+                    #             df[1].loc[ibody, "s"],
+                    #             df[1].loc[ibody, "l"],
+                    #             df[1].loc[ibody, "e"],
+                    #         ),
+                    #     ]
+                    # )
+                    lpdf += param["fun"][1].logpdf(
+                        df[1].loc[ibody, param["var"]],
+                        df[1].loc[ibody, "s"],
+                        df[1].loc[ibody, "l"],
+                        df[1].loc[ibody, "e"],
                     )
 
                 if param["no_param"][2] == 2:
-                    lpdf = np.hstack(
-                        [
-                            lpdf,
-                            param["fun"][2].logpdf(
-                                df[1].loc[iutail, param["var"]]
-                                - df[1].loc[iutail, "u2"],
-                                df[1].loc[iutail, "s"],
-                                df[1].loc[iutail, "l"],
-                            )
-                            + np.log(esc[2]),
-                        ]
+                    # lpdf = np.hstack(
+                    #     [
+                    #         lpdf,
+                    #         param["fun"][2].logpdf(
+                    #             df[1].loc[iutail, param["var"]]
+                    #             - df[1].loc[iutail, "u2"],
+                    #             df[1].loc[iutail, "s"],
+                    #             df[1].loc[iutail, "l"],
+                    #         )
+                    #         + np.log(esc[2]),
+                    #     ]
+                    # )
+                    lpdf += (
+                        param["fun"][2].logpdf(
+                            df[2].loc[iutail, param["var"]] - df[2].loc[iutail, "u2"],
+                            df[2].loc[iutail, "s"],
+                            df[2].loc[iutail, "l"],
+                        )
+                        + np.log(esc[2])
                     )
                 else:
-                    lpdf = np.hstack(
-                        [
-                            lpdf,
-                            param["fun"][2].logpdf(
-                                df[1].loc[iutail, param["var"]]
-                                - df[1].loc[iutail, "u2"],
-                                df[1].loc[iutail, "s"],
-                                df[1].loc[iutail, "l"],
-                                df[1].loc[iutail, "e"],
-                            )
-                            + np.log(esc[2]),
-                        ]
+                    # lpdf = np.hstack(
+                    #     [
+                    #         lpdf,
+                    #         param["fun"][2].logpdf(
+                    #             df[1].loc[iutail, param["var"]]
+                    #             - df[1].loc[iutail, "u2"],
+                    #             df[1].loc[iutail, "s"],
+                    #             df[1].loc[iutail, "l"],
+                    #             df[1].loc[iutail, "e"],
+                    #         )
+                    #         + np.log(esc[2]),
+                    #     ]
+                    # )
+                    lpdf += (
+                        param["fun"][2].logpdf(
+                            df[2].loc[iutail, param["var"]] - df[2].loc[iutail, "u2"],
+                            df[2].loc[iutail, "s"],
+                            df[2].loc[iutail, "l"],
+                            df[2].loc[iutail, "e"],
+                        )
+                        + np.log(esc[2])
                     )
 
             if (np.isnan(lpdf).any()) | (np.isinf(lpdf).any()):
                 nllf = 1e10
             else:
-                if lpdf.size == 1:
-                    nllf = 1e10
-                else:
-                    nllf = -np.sum(lpdf)
+                # if lpdf.size == 1:
+                #     nllf = 1e10
+                # else:
+                nllf = -np.sum(lpdf)
 
         else:
             if param["no_fun"] == 1:
@@ -993,10 +1051,20 @@ def nllf(par, df, imod, param, t_expans):
                 for i in range(param["no_fun"]):
                     if i == 0:
                         df_ = df[i].loc[df[i][param["var"]] < df[i]["u" + str(i + 1)]]
+                        nplogesci = esc[i][
+                            df[i][param["var"]] < df[i]["u" + str(i + 1)]
+                        ]
                     elif i == param["no_fun"] - 1:
                         df_ = df[i].loc[df[i][param["var"]] >= df[i]["u" + str(i)]]
+                        nplogesci = esc[i][df[i][param["var"]] >= df[i]["u" + str(i)]]
                     else:
                         df_ = df[i].loc[
+                            (
+                                (df[i][param["var"]] >= df[i]["u" + str(i)])
+                                & (df[i][param["var"]] < df[i]["u" + str(i + 1)])
+                            )
+                        ]
+                        nplogesci = esc[i][
                             (
                                 (df[i][param["var"]] >= df[i]["u" + str(i)])
                                 & (df[i][param["var"]] < df[i]["u" + str(i + 1)])
@@ -1018,7 +1086,8 @@ def nllf(par, df, imod, param, t_expans):
                             - param["fun"][i].cdf(df_["u" + str(i)], df_["s"], df_["l"])
                         )
 
-                    nplogesci = np.log(esc[i])
+                    if not param["piecewise"]:
+                        nplogesci = np.log(esc[i])
 
                     if param["no_param"][i] == 2:
                         lpdf = np.hstack(
@@ -1240,16 +1309,22 @@ def get_params(
             else:
                 df_[i] = df.copy()
                 df_[i]["s"] = params_t_expansion(
-                    par[0 : mode[0] * 2 + 1], param, df["n"]
+                    par[0 : mode[i] * pars_fourier + 1], param, df["n"]
                 )
 
                 df_[i]["l"] = params_t_expansion(
-                    par[mode[0] + 1 : mode[0] * 2 + 2], param, df["n"]
+                    par[mode[i] * pars_fourier + 1 : 2 * mode[i] * pars_fourier + 2],
+                    param,
+                    df["n"],
                 )
 
-                if param["no_param"][0] == 3:
+                if param["no_param"][i] == 3:
                     df_[i]["e"] = params_t_expansion(
-                        par[mode[0] * 2 + 2 : mode[0] * 2 + mode[1] + 3],
+                        par[
+                            2 * mode[i] * pars_fourier
+                            + 2 : 3 * mode[i] * pars_fourier
+                            + 3
+                        ],
                         param,
                         df["n"],
                     )
@@ -1301,25 +1376,48 @@ def get_params(
                 esc[1] = st.norm.cdf(par[-1]) - st.norm.cdf(par[-2])
                 esc[2] = 1 - st.norm.cdf(par[-1])
 
-        if ((not param["fix_percentiles"]) | (param["constraints"])) & (
-            not param["reduction"]
-        ):
+        # Compute the threshold according to Cobos et al. 2022 "A method to characterize
+        # climate, Earth or environmental vector random processes"
+        if param["piecewise"]:  # TODO
             if param["no_fun"] == 2:
-                if param["no_param"][0] == 2:
-                    df[0]["u1"] = param["fun"][0].ppf(esc[0], df[0]["s"], df[0]["l"])
-                    df[1]["u1"] = param["fun"][0].ppf(esc[0], df[0]["s"], df[0]["l"])
+                if (param["no_param"][0] == 2) & (param["no_param"][1] == 2):
+                    a1 = param["fun"][0].pdf(param["ws_ps"], df[0]["s"], df[0]["l"])
+                    b1 = param["fun"][1].pdf(param["ws_ps"], df[1]["s"], df[1]["l"])
+                    c1 = param["fun"][0].cdf(param["ws_ps"], df[0]["s"], df[0]["l"])
+                    c2 = 1 - param["fun"][1].cdf(param["ws_ps"], df[1]["s"], df[1]["l"])
+
+                elif (param["no_param"][0] == 3) & (param["no_param"][1] == 2):
+                    a1 = param["fun"][0].pdf(
+                        param["ws_ps"], df[0]["s"], df[0]["l"], df[0]["e"]
+                    )
+                    b1 = param["fun"][1].pdf(param["ws_ps"], df[1]["s"], df[1]["l"])
+                    c1 = param["fun"][0].cdf(
+                        param["ws_ps"], df[0]["s"], df[0]["l"], df[0]["e"]
+                    )
+                    c2 = 1 - param["fun"][1].cdf(param["ws_ps"], df[1]["s"], df[1]["l"])
                 else:
-                    df[0]["u1"] = param["fun"][0].ppf(
-                        esc[0], df[0]["s"], df[0]["l"], df[0]["e"]
+                    a1 = param["fun"][0].pdf(
+                        param["ws_ps"], df[0]["s"], df[0]["l"], df[0]["e"]
                     )
-                    df[1]["u1"] = param["fun"][0].ppf(
-                        esc[0], df[0]["s"], df[0]["l"], df[0]["e"]
+                    b1 = param["fun"][1].pdf(
+                        param["ws_ps"], df[1]["s"], df[1]["l"], df[1]["e"]
                     )
+                    c1 = param["fun"][0].cdf(
+                        param["ws_ps"], df[0]["s"], df[0]["l"], df[0]["e"]
+                    )
+                    c2 = 1 - param["fun"][1].cdf(
+                        param["ws_ps"], df[1]["s"], df[1]["l"], df[1]["e"]
+                    )
+
+                esc[0] = c1 + b1 / a1 * c2
+                esc[1] = a1 / b1 * (c1 + b1 / a1 * c2)
+                df[0]["u1"] = df[0]["s"] * 0 + param["ws_ps"]
+                df[1]["u1"] = df[1]["s"] * 0 + param["ws_ps"]
             elif param["no_fun"] == 3:
                 if param["no_param"][1] == 2:
-                    df[0]["u1"] = param["fun"][1].ppf(esc[0], df[1]["s"], df[1]["l"])
-                    df[1]["u1"] = param["fun"][1].ppf(esc[0], df[1]["s"], df[1]["l"])
-                    df[1]["u2"] = param["fun"][1].ppf(
+                    df[0]["u1"] = param["fun"][1].pdf(esc[0], df[1]["s"], df[1]["l"])
+                    df[1]["u1"] = param["fun"][1].pdf(esc[0], df[1]["s"], df[1]["l"])
+                    df[1]["u2"] = param["fun"][1].pdf(
                         1 - esc[2], df[1]["s"], df[1]["l"]
                     )
                     df[2]["u2"] = param["fun"][1].ppf(
@@ -1339,16 +1437,53 @@ def get_params(
                         1 - esc[2], df[1]["s"], df[1]["l"], df[1]["e"]
                     )
 
+        elif ((not param["fix_percentiles"]) | (param["constraints"])) & (
+            not param["reduction"]
+        ):
+            if param["no_fun"] == 2:
+                if param["no_param"][0] == 2:
+                    df[0]["u1"] = param["fun"][0].ppf(esc[0], df[0]["s"], df[0]["l"])
+                    df[1]["u1"] = param["fun"][1].ppf(esc[0], df[1]["s"], df[1]["l"])
+                else:
+                    df[0]["u1"] = param["fun"][0].ppf(
+                        esc[0], df[0]["s"], df[0]["l"], df[0]["e"]
+                    )
+                    df[1]["u1"] = param["fun"][1].ppf(
+                        esc[1], df[0]["s"], df[1]["l"], df[1]["e"]
+                    )
+            elif param["no_fun"] == 3:
+                if param["no_param"][1] == 2:
+                    df[0]["u1"] = param["fun"][0].ppf(esc[0], df[0]["s"], df[0]["l"])
+                    df[1]["u1"] = param["fun"][1].ppf(esc[0], df[1]["s"], df[1]["l"])
+                    df[1]["u2"] = param["fun"][1].ppf(
+                        1 - esc[2], df[1]["s"], df[1]["l"]
+                    )
+                    df[2]["u2"] = param["fun"][1].ppf(
+                        1 - esc[2], df[2]["s"], df[2]["l"]
+                    )
+                else:
+                    df[0]["u1"] = param["fun"][0].ppf(
+                        esc[0], df[0]["s"], df[0]["l"], df[0]["e"]
+                    )
+                    df[1]["u1"] = param["fun"][1].ppf(
+                        esc[0], df[1]["s"], df[1]["l"], df[1]["e"]
+                    )
+                    df[1]["u2"] = param["fun"][1].ppf(
+                        1 - esc[2], df[1]["s"], df[1]["l"], df[1]["e"]
+                    )
+                    df[2]["u2"] = param["fun"][2].ppf(
+                        1 - esc[2], df[2]["s"], df[2]["l"], df[2]["e"]
+                    )
+
     return df, esc
 
 
-def ppf(df: pd.DataFrame, param: dict, ppf: bool = True):
+def ppf(df: pd.DataFrame, param: dict):
     """Computes the inverse of the probability function
 
     Args:
         * df (pd.DataFrame): raw time series
         * param (dict): the parameters of the probability model
-        * ppf (boolean, optional): boolean for selecting the method for the computation. Defaults is True (creating a previous mesh of data). False is computed from the probabilty models (sometimes it is not possible).
 
     Return:
         df (pd.DataFrame): inverse of the cdf
@@ -1649,17 +1784,20 @@ def cdf(df: pd.DataFrame, param: dict, ppf: bool = False):
                                         / en
                                     )
                             else:
-                                en = param["fun"][i].cdf(
-                                    param["minimax"][1],
-                                    dff[i].loc[j, "s"],
-                                    dff[i].loc[j, "l"],
-                                    dff[i].loc[j, "e"],
-                                ) - param["fun"][i].cdf(
-                                    param["minimax"][0],
-                                    dff[i].loc[j, "s"],
-                                    dff[i].loc[j, "l"],
-                                    dff[i].loc[j, "e"],
-                                )
+                                if param["piecewise"]:
+                                    en = 1
+                                else:
+                                    en = param["fun"][i].cdf(
+                                        param["minimax"][1],
+                                        dff[i].loc[j, "s"],
+                                        dff[i].loc[j, "l"],
+                                        dff[i].loc[j, "e"],
+                                    ) - param["fun"][i].cdf(
+                                        param["minimax"][0],
+                                        dff[i].loc[j, "s"],
+                                        dff[i].loc[j, "l"],
+                                        dff[i].loc[j, "e"],
+                                    )
                                 cdf_[k, :] += (
                                     esci
                                     * (
@@ -1957,7 +2095,7 @@ def numerical_cdf_pdf_at_n(n: float, param: dict, variable: str, alpha: float = 
 
 
 def ensemble_cdf(
-    data: pd.DataFrame, param: dict, variable: str, nodes: list = [4383, 250]
+    data: pd.DataFrame, param: dict, variable: str, nodes: list = [4383, 900]
 ):
     """Computes the ensemble of the cumulative distribution function for several models
 
@@ -1993,7 +2131,7 @@ def ensemble_cdf(
 
 
 def ensemble_ppf(
-    df: pd.DataFrame, param: dict, variable: str, nodes: list = [4383, 250]
+    df: pd.DataFrame, param: dict, variable: str, nodes: list = [4383, 900]
 ):
     """Computes the inverse of the cumulative distribution function
 
@@ -2017,9 +2155,9 @@ def ensemble_ppf(
     try:
         cdfs = read.csv(param["TS"]["F_files"] + variable)
     except:
-        if "F_files" in param["TS"].keys():
+        if 1:
             cdfs = ensemble_cdf(data, param, variable, nodes)
-            pd.DataFrame(cdfs).to_csv(param["TS"]["F_files"] + variable + ".csv")
+            # pd.DataFrame(cdfs).to_csv(param["TS"]["F_files"] + variable + ".csv")
         else:
             raise ValueError(
                 "F-files are not found at {}.".format(
@@ -2037,7 +2175,7 @@ def ensemble_ppf(
         posi[no_] = np.argmin(np.abs(df["prob"][ind_] - cdfs.loc[dfn[posn[no_]]]))
     df.loc[:, variable] = data[posi]
 
-    return df[variable]
+    return df[[variable]]
 
 
 def params_t_expansion(mod: int, param: dict, nper: pd.DataFrame):
@@ -2046,7 +2184,7 @@ def params_t_expansion(mod: int, param: dict, nper: pd.DataFrame):
     Args:
         * mod (int): maximum mode of the oscillatory dependency
         * param (dict): the parameters
-        * nper (pd.DataFrame): time series of normalize year
+        * nper (pd.DataFrame): time series of normalized year
 
     Return:
         * t_expans (np.ndarray): the variability of every mode
@@ -2083,19 +2221,26 @@ def params_t_expansion(mod: int, param: dict, nper: pd.DataFrame):
         t_expans = np.zeros([np.max(mod), len(nper)])
         for i in range(0, np.max(mod)):
             n = (i + 1) * (nper + 1)
-            t_expans[i, :] = np.sin(np.pi / 2 * n.T)
+            t_expans[i, :] = np.sin(np.pi * n.T)
 
     elif param["basis_function"]["method"] == "chebyshev":
+        nper = 2 * (nper - 0.5)
+        # nper = nper / 2 + 0.5
         t_expans = np.polynomial.chebyshev.chebval(nper, mod)
     elif param["basis_function"]["method"] == "legendre":
+        nper = 2 * (nper - 0.5)
         t_expans = np.polynomial.legendre.legval(nper, mod)
     elif param["basis_function"]["method"] == "laguerre":
+        nper = 2 * (nper - 0.5)
         t_expans = np.polynomial.laguerre.lagval(nper, mod)
     elif param["basis_function"]["method"] == "hermite":
+        nper = 2 * (nper - 0.5)
         t_expans = np.polynomial.hermite.hermval(nper, mod)
     elif param["basis_function"]["method"] == "ehermite":
+        nper = 2 * (nper - 0.5)
         t_expans = np.polynomial.hermite_e.hermeval(nper, mod)
     elif param["basis_function"]["method"] == "polynomial":
+        nper = 2 * (nper - 0.5)
         t_expans = np.polynomial.polynomial.polyval(nper, mod)
 
     return t_expans
@@ -2113,36 +2258,38 @@ def print_message(res: dict, j: int, mode: list, ref: float):
     Returns:
         None
     """
-    logger.info("mode:     " + str(mode))
-    logger.info("fun:      " + str(res["fun"]))
+    if not ((res["fun"] == 1e10) | (np.abs(res["fun"]) == np.inf)):
 
-    if (ref < 0) & (res["fun"] < 0):
-        improve = np.round((ref - res["fun"]) / -ref * 100, decimals=3)
-        if improve > 0:
+        if (ref < 0) & (res["fun"] < 0):
+            improve = np.round((ref - res["fun"]) / -ref * 100, decimals=3)
+            if improve > 0:
+                improve = "Yes (" + str(improve) + " %)"
+            else:
+                improve = "No or not significant "
+        elif (ref > 0) & (res["fun"] > 0):
+            improve = np.round((ref - res["fun"]) / ref * 100, decimals=3)
+            if improve > 0:
+                improve = "Yes (" + str(improve) + " %)"
+            else:
+                improve = "No or not significant "
+        elif (ref > 0) | (res["fun"] < 0):
+            improve = np.round((ref - res["fun"]) / ref * 100, decimals=3)
             improve = "Yes (" + str(improve) + " %)"
         else:
             improve = "No or not significant "
-    elif (ref > 0) & (res["fun"] > 0):
-        improve = np.round((ref - res["fun"]) / ref * 100, decimals=3)
-        if improve > 0:
-            improve = "Yes (" + str(improve) + " %)"
-        else:
-            improve = "No or not significant "
-    elif (ref > 0) | (res["fun"] < 0):
-        improve = np.round((ref - res["fun"]) / ref * 100, decimals=3)
-        improve = "Yes (" + str(improve) + " %)"
-    else:
-        improve = "No or not significant "
 
-    logger.info("improve:  " + improve)
-    logger.info("message:  " + str(res["message"]))
-    logger.info("feval:    " + str(res["nfev"]))
-    logger.info("niter:    " + str(res["nit"]))
-    logger.info("giter:    " + str(j))
-    logger.info("params:   " + str(res["x"]))
-    logger.info(
-        "=============================================================================="
-    )
+        if not (improve == "No or not significant "):
+            logger.info("mode:     " + str(mode))
+            logger.info("fun:      " + str(res["fun"]))
+            logger.info("improve:  " + improve)
+            logger.info("message:  " + str(res["message"]))
+            logger.info("feval:    " + str(res["nfev"]))
+            logger.info("niter:    " + str(res["nit"]))
+            logger.info("giter:    " + str(j))
+            logger.info("params:   " + str(res["x"]))
+            logger.info(
+                "=============================================================================="
+            )
 
     return
 

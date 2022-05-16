@@ -57,39 +57,33 @@ def marginalfit(df: pd.DataFrame, parameters: dict):
     Args:
         * df (pd.DataFrame): the raw time series
         * parameters (dict): the initial guess parameters of the probability models.
-
             - 'var' key is a  string with the name of the variable,
-            - 'type':
+            - 'type': it defines circular or linear variables
             - 'fun' is a list within strings with the name of the probability model,
             - 'non_stat_analysis' stand for stationary (False) or not (True),
             - 'ws_ps': initial guess of percentiles or weights of PMs
             - 'basis_function' is an option to specify the GFS expansion that includes:
-
-                + 'method': a string with an option of the GFS
-                + 'noterms': number of terms of GFS
-                + 'periods': is a list with periods of oscillation for NS-PMs ,
-
+                - 'method': a string with an option of the GFS
+                - 'no_terms': number of terms of GFS
+                - 'periods': is a list with periods of oscillation for NS-PMs ,
             - 'transform' stand for normalization that includes:
-
-                + 'make':
-                + 'method':
-                + 'plot':
-
-            - 'optimize': a dictionary with some initial parameters for the optimization
-              method (see scipy.optimize.minimize), some options are:
-
-                + 'method': "SLSQP",
-                + 'maxiter': 1e2,
-                + 'ftol': 1e-4
-                + 'eps': 1e-7
-                + 'bounds': 0.5
-
+                - 'make': True or False
+                - 'method': box-cox or yeo-jonhson
+                - 'plot': True or False
+            - 'optimization': a dictionary with some initial parameters for the optimization
+            method (see scipy.optimize.minimize), some options are:
+                - 'method': "SLSQP",
+                - 'maxiter': 1e2,
+                - 'ftol': 1e-4
+                - 'eps': 1e-7
+                - 'bounds': 0.5
             - giter: number of global iterations. Repeat the minimization algorithm
-              changing the initial guess
+            changing the initial guess
+            - scale: a boolean for scaling the initial data (True) or not (False),
             - 'mode': a list with the mode to be computed independently,
             - 'par': initial guess of the parameters for the mode given
             - 'folder_name': string where the folder where the analysis will be saved
-              (optional)
+            (optional)
             - 'file_name': string where it will be saved the analysis (optional)
 
     Example:
@@ -97,9 +91,9 @@ def marginalfit(df: pd.DataFrame, parameters: dict):
                         'fun': {0: 'norm'},
                         'type': 'linear' (default) or 'circular',
                         'non_stat_analysis': True (default), False,
-                        'basis_functions': None or a list with:
+                        'basis_function': None or a list with:
                             {"method": "trigonometric", "sinusoidal", ...
-                            "noterms": int,
+                            "no_terms": int,
                             "periods": [1, 2, 4, ...]}
                         'ws_ps': 1 or a list,
                         'transform': None or a list with:
@@ -112,6 +106,7 @@ def marginalfit(df: pd.DataFrame, parameters: dict):
                             'differential_evolution' or 'shgo',
                             'eps', 'ftol', 'maxiter', 'bounds'},
                         'giter': 10,
+                        'scale': False,
                         'bic': True or False,
                         'folder_name': 'marginalfit'
                         'file_name': if not given, it is created from input parameters
@@ -149,12 +144,19 @@ def marginalfit(df: pd.DataFrame, parameters: dict):
         df, parameters = stf.transform(df, parameters)
         parameters["transform"]["min"] = df.min().values[0] - 1e-2
         df -= parameters["transform"]["min"]
+        if parameters["piecewise"]:
+            for ind_, val_ in enumerate(parameters["ws_ps"]):
+                parameters["ws_ps"][ind_] = val_ - parameters["transform"]["min"]
 
     # Scale and shift time series for ensuring the use of any PM
     parameters["range"] = float((df.max() - df.min()).values[0])
-    if parameters["range"] > 10:
-        df = df / (parameters["range"] / 3)
-        parameters["scale"] = parameters["range"] / 3
+    if parameters["scale-shift"]:
+        if parameters["range"] > 10:
+            df = df / (parameters["range"] / 3)
+            parameters["scale"] = parameters["range"] / 3
+            if parameters["piecewise"]:
+                for ind_, val_ in enumerate(parameters["ws_ps"]):
+                    parameters["ws_ps"][ind_] = val_ / (parameters["range"] / 3)
 
     # Bound the variable with some reference values
     if parameters["circular"]:
@@ -220,6 +222,7 @@ def marginalfit(df: pd.DataFrame, parameters: dict):
             )
             # Make the non-stationary analysis
             parameters = stf.nonst_analysis(df, parameters)
+
     else:
         # Write the information about the variable, PMs, method and mode
         term = (
@@ -248,7 +251,7 @@ def marginalfit(df: pd.DataFrame, parameters: dict):
     logger.info("End fitting process")
     logger.info("--- %s seconds ---" % (time.time() - start_time))
 
-    # Save the parameters in the file if "file_name" is given in params
+    # Save the parameters in the file if "fname" is given in params
     auxiliar.mkdir(parameters["folder_name"])
 
     if not "file_name" in parameters.keys():
@@ -266,7 +269,10 @@ def marginalfit(df: pd.DataFrame, parameters: dict):
         filename += "_" + str(parameters["basis_period"][0])
 
         filename += "_" + parameters["basis_function"]["method"]
-        filename += "_" + str(parameters["basis_function"]["no_terms"])
+        if "no_terms" in parameters["basis_function"].keys():
+            filename += "_" + str(parameters["basis_function"]["no_terms"])
+        else:
+            filename += "_" + str(parameters["basis_function"]["degree"])
         filename += "_" + parameters["optimization"]["method"]
 
         filename = parameters["folder_name"] + filename
@@ -274,11 +280,11 @@ def marginalfit(df: pd.DataFrame, parameters: dict):
 
     save.to_json(parameters, parameters["file_name"])
 
-    # Return the dictionary with the parameters from the analysis
+    # Return the dictionary with the parameters of the analysis
     return parameters
 
 
-def check_marginal_params(param):
+def check_marginal_params(param: dict):
     """Checks the input parameters and includes some required arguments for the computation
 
     Args:
@@ -318,6 +324,8 @@ def check_marginal_params(param):
                 k += 1
 
     # Check if it can be reduced the number of parameters using Solari (2011) analysis
+    if not "fun" in param.keys():
+        raise ValueError("Probability models are required in a list in fun.")
     if len(param["fun"].keys()) == 3:
         if (param["fun"][0] == "genpareto") & (param["fun"][2] == "genpareto"):
             param["reduction"] = True
@@ -366,8 +374,9 @@ def check_marginal_params(param):
                 )
             param["no_tot_param"] += int(param["fun"][i].numargs + 2)
 
-    if not "non_stat_analysis" in param.keys():
+    if param["non_stat_analysis"] == False:
         param["basis_period"] = None
+        param["basis_function"] = {"method": "None", "order": 0, "no_terms": 0}
 
     if not "basis_period" in param:
         param["basis_period"] = [1]
@@ -378,12 +387,12 @@ def check_marginal_params(param):
     elif isinstance(param["basis_period"], int):
         param["basis_period"] = list(param["basis_period"])
 
-    if not "basis_function" in param.keys():
+    if (not "basis_function" in param.keys()) & param["non_stat_analysis"]:
         raise ValueError("Basis function is required when non_stat_analysis is True.")
 
-    if not "method" in param["basis_function"]:
+    if (not "method" in param["basis_function"]) & param["non_stat_analysis"]:
         raise ValueError("Method is required when non_stat_analysis is True.")
-    else:
+    elif param["non_stat_analysis"]:
         if param["basis_function"]["method"] in [
             "trigonometric",
             "sinusoidal",
@@ -581,7 +590,9 @@ def check_marginal_params(param):
         k += 1
         param["circular"] = False
 
-    if any(np.asarray(param["ws_ps"]) > 1) or any(np.asarray(param["ws_ps"]) < 0):
+    if (any(np.asarray(param["ws_ps"]) > 1) or any(np.asarray(param["ws_ps"]) < 0)) & (
+        not param["piecewise"]
+    ):
         raise ValueError(
             "percentiles cannot be lower than 0 or bigger than one. Got {}.".format(
                 str(param["ws_ps"])
@@ -615,6 +626,12 @@ def check_marginal_params(param):
         param["folder_name"] = "marginalfit/"
     else:
         param["folder_name"] += "/marginalfit/"
+
+    if not "scale-shift" in param.keys():
+        param["scale-shift"] = True
+    elif not param["scale-shift"]:
+        param["scale"] = 1
+        param["shift"] = 0
 
     if k == 1:
         logger.info("None.")
@@ -667,23 +684,239 @@ def nanoise(
     return df
 
 
+def look_models(data, variable, percentiles=[1], fname="models_out", funcs="natural"):
+    """Fits many of probability model to data and sorts in descending order of estimation following the sse
+
+    Args:
+        * data (pd.DataFrame): raw time series
+        * variable (string): name of variables
+        * percentiles (list): value of the cdf at the transition between different probability models
+        * fname (string): name of the output file with the parameters
+        * funcs (string): a parameter with the value of 'None' or 'natural' that stands for the estimation of the whole range of the probability model in scipy.stats or more frequently used in the literature
+
+    Returns:
+        * results (pd.DataFrame): the parameters of the estimation
+    """
+
+    # TODO: for mixed functions
+    if not funcs:
+        funcs = st._continuous_distns._distn_names
+    elif funcs == "natural":
+        funcs = [
+            "alpha",
+            "beta",
+            "expon",
+            "genpareto",
+            "genextreme",
+            "gamma",
+            "gumbel_r",
+            "gumbel_l",
+            "triang",
+            "lognorm",
+            "norm",
+            "rayleigh",
+            "weibull_min",
+            "weibull_max",
+        ]
+
+    results = dict()
+    cw = np.hstack([0, np.cumsum(percentiles)])
+    dfs = data.sort_values(variable, ascending=True)
+    dfs["p"] = np.linspace(0, 1, len(dfs))
+    # for i, j in enumerate(percentiles):
+    # filt = ((dfs['p'] > cw[i]) & (dfs['p'] < j))
+    # Create a table with the parameters of the best estimations and sse
+    results = pd.DataFrame(
+        0,
+        index=np.arange(0, len(funcs)),
+        columns=["models", "sse", "a", "b", "c", "d", "e", "f"],
+    )
+    results.index.name = "id"
+
+    # Computeh the best estimations for the given models
+    for k, name in enumerate(funcs):
+        model = getattr(st, name)
+        out = stf.fit_(dfs.loc[:, variable], 25, model)
+        results.loc[k, "models"] = name
+        results.iloc[k, 1 : len(out) + 1] = out
+    results.sort_values(by="sse", inplace=True)
+    results["position"] = np.arange(1, len(funcs) + 1)
+
+    # for i, j in enumerate(percentiles):
+    results.replace(0, "-", inplace=True)
+
+    # Save to a xlsx file
+    save.to_xlsx(results, fname)
+
+    return results
+
+
+def gaps(data, variables, fname="gaps", buoy=False):
+    """Creates a table with the main characteristics of gaps for variables
+
+    Args:
+        * data (pd.DataFrame): time series
+        * variables (string): with the variables where gap-info is required
+        * fname (string): name of the output file with the information table
+
+    Returns:
+        * tbl_gaps (pd.DataFrame): gaps info
+    """
+
+    if not isinstance(variables, list):
+        variables = [variables]
+
+    if not buoy:
+        columns_ = [
+            "Cadency (hr)",
+            "Accuracy*",
+            "Period",
+            "No. years",
+            "% gaps",
+            "Med. gap (hr)",
+            "Max. gap (hr)",
+        ]
+    else:
+        columns_ = [
+            "Cadency (hr)",
+            "Accuracy*",
+            "Period",
+            "No. years",
+            "Gaps (%)",
+            "Med. gap (hr)",
+            "Max. gap (hr)",
+            "Quality data (%)",
+        ]
+
+    tbl_gaps = pd.DataFrame(
+        0,
+        columns=columns_,
+        index=variables,
+    )
+    tbl_gaps.index.name = "var"
+
+    for i in variables:
+        dt_nan = data[i].dropna()
+        if buoy:
+            quality = np.sum(data.loc[dt_nan.index, "Qc_e"] <= 2)
+
+        dt0 = (dt_nan.index[1:] - dt_nan.index[:-1]).total_seconds() / 3600
+        dt = dt0[dt0 > np.median(dt0) + 0.1].values
+        if dt.size == 0:
+            dt = 0
+        acc = st.mode(np.diff(dt_nan.sort_values().unique()))[0]
+
+        tbl_gaps.loc[i, "Cadency (hr)"] = np.round(st.mode(dt0)[0] * 60, decimals=2)
+        tbl_gaps.loc[i, "Accuracy*"] = np.round(acc, decimals=2)
+        tbl_gaps.loc[i, "Period"] = str(dt_nan.index[0]) + "-" + str(dt_nan.index[-1])
+        tbl_gaps.loc[i, "No. years"] = dt_nan.index[-1].year - dt_nan.index[0].year
+        tbl_gaps.loc[i, "Gaps (%)"] = np.round(
+            np.sum(dt) / np.float(data[i].shape[0]) * 100, decimals=2
+        )
+        tbl_gaps.loc[i, "Med. gap (hr)"] = np.round(np.median(dt), decimals=2)
+        tbl_gaps.loc[i, "Max. gap (hr)"] = np.round(np.max(dt), decimals=2)
+
+        if buoy:
+            tbl_gaps.loc[i, "Quality data (%)"] = np.round(
+                quality / len(dt_nan) * 100, decimals=2
+            )
+
+    if not fname:
+        logger.info(tbl_gaps)
+    else:
+        save.to_xlsx(tbl_gaps, fname)
+
+    return tbl_gaps
+
+
+def normalize(data, variables, circular=False):
+    """Normalizes data using the maximum distance between values
+
+    Args:
+        * data (pd.DataFrame): raw time series
+
+    Returns:
+        * datan (pd.DataFrame): normalized variable
+    """
+
+    datan = data.copy()
+    for i in variables:
+        if circular:
+            datan[i] = np.deg2rad(data[i]) / np.pi
+        else:
+            datan[i] = (data[i] - data[i].min()) / (data[i].max() - data[i].min())
+
+    return datan
+
+
+def mda(data, variables, m, mvar, fname="cases"):
+    """Implements the Maximum Dissimilarity Algorithm (Camus et al. 2011)
+
+    Args:
+        * data (pd.DataFrame): raw time series
+        * variables (list): name of variables
+        * m (int): number of representative cases
+        * mvar (string): name of the main variable which determines the first subset of size "m"
+        * fname (string): name of the file to save. Defaults to 'cases'.
+
+    Returns:
+        * cases (pd.DataFrame): the representative m-values of the variables
+    """
+    datan = normalize(data, variables)
+
+    n = datan.shape[0]
+    ind_ = []
+
+    # Selection of the first point
+    ind_.append(datan.loc[:, mvar].idxmax())
+
+    # Selection of the second point
+    ds2 = np.zeros(n)
+    for i in variables:
+        if i.lower().startswith("d"):
+            aux = np.abs(datan.loc[:, i] - datan.loc[ind_[0], i])
+            ds2 += (np.minimum(aux, 2 - aux)) ** 2
+        else:
+            ds2 += (datan.loc[:, i] - datan.loc[ind_[0], i]) ** 2
+
+    dissim = np.sqrt(ds2)
+    ind_.append(dissim.idxmax())
+
+    # Selection of the rest of points
+    for l in range(2, m):
+        ds2 = np.zeros(n)
+        for i in variables:
+            if i.lower().startswith("d"):
+                aux = np.abs(datan.loc[:, i] - datan.loc[ind_[l - 1], i])
+                ds2 += (np.minimum(aux, 2 - aux)) ** 2
+            else:
+                ds2 += (datan.loc[:, i] - datan.loc[ind_[l - 1], i]) ** 2
+
+        d = np.sqrt(ds2)
+        dissim = np.min(np.vstack((dissim, d)), 0)
+        ind_.append(datan.index[np.argmax(dissim)])
+
+    cases = data.loc[ind_, :]
+    cases.to_csv(fname)
+    return cases
+
+
 def dependencies(df: pd.DataFrame, param: dict):
     """Computes the temporal dependency using a VAR model (Solari & van Gelder, 2011;
     Solari & Losada, 2011).
 
     Args:
-        * df (pd.DataFrame): raw time series
-        * param (dict): parameters of dt.
-
+        - df (pd.DataFrame): raw time series
+        - param (dict): parameters of dt.
             - 'mvar' is the main variable,
             - 'threshold' stands for the threshold of the main variable,
             - 'vars' is a list with the name of all variables,
-            - 'varord' is the order of the VAR model,
+            - 'order' is the order of the VAR model,
             - 'events' is True or False standing for storm analysis (Lira-Loarca et al, 2020)
-              or Full simulation,
-            - 'fname' is output file name.
-
-        * method (string): name of the multivariate method of dependence. Defaults to "VAR".
+            or Full simulation,
+            - 'not_save_error' stands for not include error time series in json file
+            - 'file_name' is output file name.
+        - method (string): name of the multivariate method of dependence. Defaults to "VAR".
 
     Returns:
         - df_dt (dict): parameters of the fitting process
@@ -697,13 +930,6 @@ def dependencies(df: pd.DataFrame, param: dict):
 
     # Remove nan in the input timeseries
     df = pd.DataFrame(df).dropna()
-
-    # Reading parameters
-    for var_ in param["TD"]["vars"]:
-        try:
-            param[var_] = read.rjson(param[var_]["fname"])
-        except:
-            raise ValueError("File {} not found.".format(param[var_]["fname"]))
 
     # Remove nans
     df.dropna(inplace=True)
@@ -747,7 +973,7 @@ def dependencies(df: pd.DataFrame, param: dict):
 
         # Transformed timeserie
         if param[var_]["transform"]["make"]:
-            variable["data"], _ = transform(variable["data"], param[var_])
+            variable["data"], _ = stf.transform(variable["data"], param[var_])
             variable["data"] -= param[var_]["transform"]["min"]
 
         if "scale" in param[var_]:
@@ -758,16 +984,16 @@ def dependencies(df: pd.DataFrame, param: dict):
 
         # Remove outlayers
         if any(cdf_[var_] >= 1 - 1e-6):
-            print(
-                "Warning: Casting with {} cdf-values of {} next to one (F({}) > 1-1e-6).".format(
+            logger.info(
+                "Casting {} probs of {} next to one (F({}) > 1-1e-6).".format(
                     str(np.sum(cdf_[var_] >= 1 - 1e-6)), var_, var_
                 )
             )
             cdf_.loc[cdf_[var_] >= 1 - 1e-6, var_] = 1 - 1e-6
 
         if any(cdf_[var_] <= 1e-6):
-            print(
-                "Casting with {} cdf-values of {} next to zero (F({}) < 1e-6).".format(
+            logger.info(
+                "Casting {} probs of {} next to zero (F({}) < 1e-6).".format(
                     str(np.sum(cdf_[var_] <= 1e-6)), var_, var_
                 )
             )
@@ -776,7 +1002,7 @@ def dependencies(df: pd.DataFrame, param: dict):
         # If "events" is True, the conditional analysis over threshold following the
         # steps given in Lira-Loarca et al (2019) is applied
         if (var_ == param["TD"]["mvar"]) & param["TD"]["events"]:
-            print(
+            logger.info(
                 "Computing conditioned probability models to the threshold of the main variable"
             )
             cdfj = cdf_[var_].copy()
@@ -794,7 +1020,7 @@ def dependencies(df: pd.DataFrame, param: dict):
 
     # Remove nans in CDF
     if any(np.sum(np.isnan(cdf_))):
-        print(
+        logger.info(
             "Some Nan ("
             + str(np.sum(np.sum(np.isnan(cdf_))))
             + " values) are founds before the normalization."
@@ -807,22 +1033,41 @@ def dependencies(df: pd.DataFrame, param: dict):
         for ind_, var_ in enumerate(cdf_):
             z[:, ind_] = st.norm.ppf(cdf_[var_].values)
 
+        # Save simulation file
+        if param["TD"]["save_z"]:
+            save.to_txt(
+                z,
+                "z_values" + ".csv",
+            )
+
         # Fit the parameters of the AR/VAR(p) model
         df_dt = varfit(z.T, param["TD"]["order"])
+        for key_ in param["TD"].keys():
+            df_dt[key_] = param["TD"][key_]
     else:
-        print("No more methods are yet available.")
+        logger.info("No more methods are yet available.")
 
     # Save to json file
-    auxiliar.mkdir("dependency")
-    filename = ""
-    for var_ in param["TD"]["vars"]:
-        filename += var_ + "_"
-    filename += str(param["TD"]["order"]) + "_"
-    filename += param["TD"]["method"]
 
-    param["TD"]["fname"] = "dependency/" + filename
+    # auxiliar.mkdir("dependency")
 
-    save.to_json(df_dt, param["TD"]["fname"], True)
+    if not "file_name" in param["TD"].keys():
+        auxiliar.mkdir("dependency")
+        filename = "dependency/"
+        for var_ in param["TD"]["vars"]:
+            filename += var_ + "_"
+        filename += str(param["TD"]["order"]) + "_"
+        filename += param["TD"]["method"]
+    else:
+        filename = param["TD"]["file_name"]
+
+    param["TD"]["file_name"] = filename
+
+    if param["TD"]["not_save_error"]:
+        df_dt.pop("y", None)
+        df_dt.pop("y*", None)
+
+    save.to_json(df_dt, param["TD"]["file_name"], True)
 
     # Clean memory usage
     del cdf_, param
@@ -848,12 +1093,23 @@ def check_dependencies_params(param: dict):
         logger.info(str(k) + " - VAR method used")
         k += 1
 
+    if not "not_save_error" in param.keys():
+        param["not_save_error"] = True
+
     if not "events" in param.keys():
         param["events"] = False
+
+    if not "mvar" in param.keys():
+        param["mvar"] = None
+
+    if not "save_z" in param.keys():
+        param["save_z"] == False
 
     logger.info(
         "==============================================================================\n"
     )
+    global text_warning
+    text_warning = True
 
     return param
 
@@ -889,14 +1145,14 @@ def varfit(data: np.ndarray, order: int):
     # Select the minimum BIC and return the parameter associated to it
     id_ = np.argmin(bic)
     par_dt = par_dt[id_]
-    par_dt["id"] = int(id_ + 1)
+    par_dt["id"] = int(id_)
     par_dt["bic"] = [float(bicValue) for bicValue in bic]
     par_dt["R2adj"] = r2adj[par_dt["id"]]
     logger.info(
         "Minimum BIC ("
         + str(par_dt["bic"][par_dt["id"]])
         + ") obtained for p-order "
-        + str(par_dt["id"])
+        + str(par_dt["id"] + 1)  # Python starts at zero
         + " and R2adj: "
         + str(par_dt["R2adj"])
     )
@@ -905,9 +1161,7 @@ def varfit(data: np.ndarray, order: int):
     )
 
     if id_ + 1 == order:
-        logger.info(
-            "Warning! The lower BIC is obtained with the higher order model. Increase the p-order."
-        )
+        logger.info("The lower BIC is in the higher order model. Increase the p-order.")
 
     return par_dt
 
@@ -936,30 +1190,40 @@ def varfit_OLS(y, z):
     # Estimate de covariance matrix
     df["Q"] = np.cov(df["U"])
     df["y"] = y
-    error_ = np.random.multivariate_normal(np.zeros(df["dim"]), df["Q"], z.shape[1]).T
+    if df["dim"] == 1:
+        error_ = np.random.normal(np.zeros(df["dim"]), df["Q"], z.shape[1]).T
+    else:
+        error_ = np.random.multivariate_normal(
+            np.zeros(df["dim"]), df["Q"], z.shape[1]
+        ).T
     df["y*"] = np.dot(df["B"], z) + error_
 
     # Estimate R2 and R2-adjusted parameters
-    R2 = 1 - np.sum((y - df["y*"]) ** 2, axis=1) / np.sum((y - np.mean(y)) ** 2, axis=1)
+    R2 = np.sum((df["y*"] - np.mean(y)) ** 2, axis=1) / np.sum(
+        (y - np.mean(y)) ** 2, axis=1
+    )
     R2adj = 1 - (1 - R2) * (len(z.T) - 1) / (len(z.T) - nel - 1)
 
     # rmse = np.sqrt(np.sum((st.norm.cdf(y) - st.norm.cdf(np.dot(df["B"], z))) ** 2, axis=1)/y.shape[1])
     # mae = np.sum(np.abs(st.norm.cdf(y) - st.norm.cdf(np.dot(df["B"], z))), axis=1)/y.shape[1]
-    # print(rmse, mae)
+    # logger.info(rmse, mae)
 
     # Compute the LLF
     multivariatePdf = st.multivariate_normal.pdf(
         df["U"].T, mean=np.zeros(df["dim"]), cov=df["Q"]
     )
     mask = multivariatePdf > 0
+
+    global text_warning
     if len(multivariatePdf) != len(multivariatePdf[mask]):
-        print(
-            "Order: "
-            + str(int((nel - 1) / (df["dim"]) - 1))
-            + ". Casting with {} values equal to zero of the multivariate pdf. Values removed.".format(
-                str(np.sum(~mask))
+        if text_warning:
+            logger.info(
+                "Casting {} zero-values of the multivariate pdf. Removed.".format(
+                    str(np.sum(~mask))
+                )
             )
-        )
+            text_warning = False
+
         llf = np.sum(np.log(multivariatePdf[mask]))
     else:
         llf = np.sum(np.log(multivariatePdf))
