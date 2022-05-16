@@ -17,7 +17,10 @@ def show(file_name: str = None, res: int = 600):
     elif file_name == ("to_axes"):
         pass
     else:
-        plt.savefig(f"{file_name}.png", dpi=res, bbox_inches="tight")
+        if "png" or "pdf" in file_name:
+            plt.savefig(f"{file_name}", dpi=res, bbox_inches="tight")
+        else:
+            plt.savefig(f"{file_name}" + ".png", dpi=res, bbox_inches="tight")
         plt.close()
     return
 
@@ -51,8 +54,8 @@ def handle_axis(
             fig = plt.figure()
             ax = fig.gca(projection="3d")
 
-    if row_plots + col_plots > 2:
-        ax = ax.flatten()
+        if row_plots + col_plots > 2:
+            ax = ax.flatten()
 
     return ax
 
@@ -94,6 +97,7 @@ def labels(variable):
         "ma": r"$M_{ast}$ (m)",
         "Qd": r"$Q_d$ (m$^3$/s)",
         "Q": r"Q (m$^3$/s)",
+        "S": r"S (psu)",
         "dur_storm": r"$d_0$ (hr)",
         "dur_calms": r"$\Delta_0$ (hr)",
         "dur": r"d (hr)",
