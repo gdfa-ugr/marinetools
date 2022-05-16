@@ -47,7 +47,7 @@ def st_analysis(df: pd.DataFrame, param: dict):
         if param["no_fun"] == 1:
             par0 = param["fun"][0].fit(df[param["var"]])
         elif param["no_fun"] > 1:
-            percentiles = np.hstack([0, np.cumsum(param["ws_ps"])])
+            percentiles = np.hstack([0, np.cumsum(param["ws_ps"]), 1])
             for i in param["fun"].keys():
                 filtro = (p >= percentiles[i]) & (p <= percentiles[i + 1])
                 par = param["fun"][i].fit(df_sort[filtro])
@@ -1309,11 +1309,17 @@ def get_params(
             else:
                 df_[i] = df.copy()
                 df_[i]["s"] = params_t_expansion(
-                    par[0 : mode[i] * pars_fourier + 1], param, df["n"]
+                    par[pos[0] : pos[0] + mode[i] * pars_fourier + 1], param, df["n"]
                 )
 
                 df_[i]["l"] = params_t_expansion(
-                    par[mode[i] * pars_fourier + 1 : 2 * mode[i] * pars_fourier + 2],
+                    par[
+                        pos[0]
+                        + mode[i] * pars_fourier
+                        + 1 : pos[0]
+                        + 2 * mode[i] * pars_fourier
+                        + 2
+                    ],
                     param,
                     df["n"],
                 )
@@ -1321,8 +1327,10 @@ def get_params(
                 if param["no_param"][i] == 3:
                     df_[i]["e"] = params_t_expansion(
                         par[
-                            2 * mode[i] * pars_fourier
-                            + 2 : 3 * mode[i] * pars_fourier
+                            pos[0]
+                            + 2 * mode[i] * pars_fourier
+                            + 2 : pos[0]
+                            + 3 * mode[i] * pars_fourier
                             + 3
                         ],
                         param,
@@ -1339,14 +1347,14 @@ def get_params(
                 pos[0] = pos[0] + int(param["no_param"][i])
                 pos[1] = pos[1] + param["no_param"][i]
                 pos[2] = i + 1
-
-            pos[0] = (
-                pos[0]
-                + int(param["no_param"][i])
-                + pars_fourier * imod[i] * int(param["no_param"][i])
-            )
-            pos[1] += 1
-            pos[2] += 1
+            else:
+                pos[0] = (
+                    pos[0]
+                    + int(param["no_param"][i])
+                    + pars_fourier * imod[i] * int(param["no_param"][i])
+                )
+                pos[1] += 1
+                pos[2] += 1
 
         df = df_.copy()
 
@@ -1378,66 +1386,68 @@ def get_params(
 
         # Compute the threshold according to Cobos et al. 2022 "A method to characterize
         # climate, Earth or environmental vector random processes"
-        if param["piecewise"]:  # TODO
-            if param["no_fun"] == 2:
-                if (param["no_param"][0] == 2) & (param["no_param"][1] == 2):
-                    a1 = param["fun"][0].pdf(param["ws_ps"], df[0]["s"], df[0]["l"])
-                    b1 = param["fun"][1].pdf(param["ws_ps"], df[1]["s"], df[1]["l"])
-                    c1 = param["fun"][0].cdf(param["ws_ps"], df[0]["s"], df[0]["l"])
-                    c2 = 1 - param["fun"][1].cdf(param["ws_ps"], df[1]["s"], df[1]["l"])
+        # if param[
+        #     "piecewise"
+        # ]:  # TODO: modify for a more refined and understandable version
+        #     if param["no_fun"] == 2:
+        #         if (param["no_param"][0] == 2) & (param["no_param"][1] == 2):
+        #             a1 = param["fun"][0].pdf(param["ws_ps"], df[0]["s"], df[0]["l"])
+        #             b1 = param["fun"][1].pdf(param["ws_ps"], df[1]["s"], df[1]["l"])
+        #             c1 = param["fun"][0].cdf(param["ws_ps"], df[0]["s"], df[0]["l"])
+        #             c2 = 1 - param["fun"][1].cdf(param["ws_ps"], df[1]["s"], df[1]["l"])
 
-                elif (param["no_param"][0] == 3) & (param["no_param"][1] == 2):
-                    a1 = param["fun"][0].pdf(
-                        param["ws_ps"], df[0]["s"], df[0]["l"], df[0]["e"]
-                    )
-                    b1 = param["fun"][1].pdf(param["ws_ps"], df[1]["s"], df[1]["l"])
-                    c1 = param["fun"][0].cdf(
-                        param["ws_ps"], df[0]["s"], df[0]["l"], df[0]["e"]
-                    )
-                    c2 = 1 - param["fun"][1].cdf(param["ws_ps"], df[1]["s"], df[1]["l"])
-                else:
-                    a1 = param["fun"][0].pdf(
-                        param["ws_ps"], df[0]["s"], df[0]["l"], df[0]["e"]
-                    )
-                    b1 = param["fun"][1].pdf(
-                        param["ws_ps"], df[1]["s"], df[1]["l"], df[1]["e"]
-                    )
-                    c1 = param["fun"][0].cdf(
-                        param["ws_ps"], df[0]["s"], df[0]["l"], df[0]["e"]
-                    )
-                    c2 = 1 - param["fun"][1].cdf(
-                        param["ws_ps"], df[1]["s"], df[1]["l"], df[1]["e"]
-                    )
+        #         elif (param["no_param"][0] == 3) & (param["no_param"][1] == 2):
+        #             a1 = param["fun"][0].pdf(
+        #                 param["ws_ps"], df[0]["s"], df[0]["l"], df[0]["e"]
+        #             )
+        #             b1 = param["fun"][1].pdf(param["ws_ps"], df[1]["s"], df[1]["l"])
+        #             c1 = param["fun"][0].cdf(
+        #                 param["ws_ps"], df[0]["s"], df[0]["l"], df[0]["e"]
+        #             )
+        #             c2 = 1 - param["fun"][1].cdf(param["ws_ps"], df[1]["s"], df[1]["l"])
+        #         else:
+        #             a1 = param["fun"][0].pdf(
+        #                 param["ws_ps"], df[0]["s"], df[0]["l"], df[0]["e"]
+        #             )
+        #             b1 = param["fun"][1].pdf(
+        #                 param["ws_ps"], df[1]["s"], df[1]["l"], df[1]["e"]
+        #             )
+        #             c1 = param["fun"][0].cdf(
+        #                 param["ws_ps"], df[0]["s"], df[0]["l"], df[0]["e"]
+        #             )
+        #             c2 = 1 - param["fun"][1].cdf(
+        #                 param["ws_ps"], df[1]["s"], df[1]["l"], df[1]["e"]
+        #             )
 
-                esc[0] = c1 + b1 / a1 * c2
-                esc[1] = a1 / b1 * (c1 + b1 / a1 * c2)
-                df[0]["u1"] = df[0]["s"] * 0 + param["ws_ps"]
-                df[1]["u1"] = df[1]["s"] * 0 + param["ws_ps"]
-            elif param["no_fun"] == 3:
-                if param["no_param"][1] == 2:
-                    df[0]["u1"] = param["fun"][1].pdf(esc[0], df[1]["s"], df[1]["l"])
-                    df[1]["u1"] = param["fun"][1].pdf(esc[0], df[1]["s"], df[1]["l"])
-                    df[1]["u2"] = param["fun"][1].pdf(
-                        1 - esc[2], df[1]["s"], df[1]["l"]
-                    )
-                    df[2]["u2"] = param["fun"][1].ppf(
-                        1 - esc[2], df[1]["s"], df[1]["l"]
-                    )
-                else:
-                    df[0]["u1"] = param["fun"][1].ppf(
-                        esc[0], df[1]["s"], df[1]["l"], df[1]["e"]
-                    )
-                    df[1]["u1"] = param["fun"][1].ppf(
-                        esc[0], df[1]["s"], df[1]["l"], df[1]["e"]
-                    )
-                    df[1]["u2"] = param["fun"][1].ppf(
-                        1 - esc[2], df[1]["s"], df[1]["l"], df[1]["e"]
-                    )
-                    df[2]["u2"] = param["fun"][1].ppf(
-                        1 - esc[2], df[1]["s"], df[1]["l"], df[1]["e"]
-                    )
+        #         esc[0] = c1 + b1 / a1 * c2
+        #         esc[1] = a1 / b1 * (c1 + b1 / a1 * c2)
+        #         df[0]["u1"] = df[0]["s"] * 0 + param["ws_ps"]
+        #         df[1]["u1"] = df[1]["s"] * 0 + param["ws_ps"]
+        #     elif param["no_fun"] == 3:
+        #         if param["no_param"][1] == 2:
+        #             df[0]["u1"] = param["fun"][1].pdf(esc[0], df[1]["s"], df[1]["l"])
+        #             df[1]["u1"] = param["fun"][1].pdf(esc[0], df[1]["s"], df[1]["l"])
+        #             df[1]["u2"] = param["fun"][1].pdf(
+        #                 1 - esc[2], df[1]["s"], df[1]["l"]
+        #             )
+        #             df[2]["u2"] = param["fun"][1].ppf(
+        #                 1 - esc[2], df[1]["s"], df[1]["l"]
+        #             )
+        #         else:
+        #             df[0]["u1"] = param["fun"][1].ppf(
+        #                 esc[0], df[1]["s"], df[1]["l"], df[1]["e"]
+        #             )
+        #             df[1]["u1"] = param["fun"][1].ppf(
+        #                 esc[0], df[1]["s"], df[1]["l"], df[1]["e"]
+        #             )
+        #             df[1]["u2"] = param["fun"][1].ppf(
+        #                 1 - esc[2], df[1]["s"], df[1]["l"], df[1]["e"]
+        #             )
+        #             df[2]["u2"] = param["fun"][1].ppf(
+        #                 1 - esc[2], df[1]["s"], df[1]["l"], df[1]["e"]
+        #             )
 
-        elif ((not param["fix_percentiles"]) | (param["constraints"])) & (
+        if ((not param["fix_percentiles"]) | (param["constraints"])) & (
             not param["reduction"]
         ):
             if param["no_fun"] == 2:
@@ -2069,14 +2079,14 @@ def numerical_cdf_pdf_at_n(n: float, param: dict, variable: str, alpha: float = 
             columns=[variable],
         )
 
-    # Transformed timeseries
+    # Transformed timeserie
     if (not param["transform"]["plot"]) & param["transform"]["make"]:
         if "scale" in param:
             res[param["var"]] = res[param["var"]] * param["scale"]
 
         res[param["var"]] = res[param["var"]] + param["transform"]["min"]
         res[param["var"]] = inverse_transform(res[[param["var"]]], param)
-    elif "scale" in param:
+    elif ("scale" in param) & (not param["transform"]["plot"]):
         res[param["var"]] = res[param["var"]] * param["scale"]
 
     if param["circular"]:
@@ -2242,6 +2252,8 @@ def params_t_expansion(mod: int, param: dict, nper: pd.DataFrame):
     elif param["basis_function"]["method"] == "polynomial":
         nper = 2 * (nper - 0.5)
         t_expans = np.polynomial.polynomial.polyval(nper, mod)
+    else:
+        t_expans = np.ones(len(nper)) * mod[0]
 
     return t_expans
 

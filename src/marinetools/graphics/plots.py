@@ -1609,6 +1609,7 @@ def pdf_n_i(
     nbins: int = 12,
     wlen: float = 14 / 365.25,
     file_name: str = None,
+    all: bool = False,
 ):
     """Compute the pdf at n-times
 
@@ -1630,14 +1631,27 @@ def pdf_n_i(
     colors = ["deepskyblue", "cyan", "darkblue", "royalblue", "b"]
 
     if param is not None:
+        if all:
+            ns = [0.5]
         for i, j in enumerate(ns):
             df = stf.numerical_cdf_pdf_at_n(j, param, variable)
 
-            label_ = "F(n: " + str(j) + ")"
-            axs[0].plot(df["cdf"], color=colors[i], label=label_)
-            axs[1].plot(df["pdf"], color=colors[i], label=label_)
+            if all:
+                label_ = "F"
+            else:
+                label_ = "F(n: " + str(j) + ")"
+            axs[0].plot(df["cdf"], color=colors[i], label=label_ + "-theoretical")
+            axs[1].plot(df["pdf"], color=colors[i], label=label_ + "-theoretical")
 
     if df_obs is not None:
+        df_obs["n"] = np.fmod(
+            (df_obs.index - datetime.datetime(df_obs.index[0].year, 1, 1, 0))
+            .total_seconds()
+            .values
+            / (param["basis_period"][0] * 365.25 * 24 * 3600),
+            1,
+        )
+
         for i, j in enumerate(ns):
             or_ = False
             min_ = j - wlen
@@ -1650,14 +1664,30 @@ def pdf_n_i(
             else:
                 mask = (df_obs["n"] <= max_) & (df_obs["n"] >= min_)
 
-            label_ = "F(n: " + str(j) + ")"
+            if isinstance(param, dict):
+                if param["transform"]["plot"]:
+                    df_obs[variable], _ = stf.transform(df_obs[variable], param)
+                    df_obs[variable] -= param["transform"]["min"]
+                    if "scale" in param:
+                        df_obs[variable] = df_obs[variable] / param["scale"]
+            if all:
+                label_ = "F"
+            else:
+                label_ = "F(n: " + str(j) + ")"
             x = np.linspace(0, 1, nbins)
-            emp = df_obs[variable].loc[mask].quantile(q=x).values
+            if all:
+                emp = df_obs[variable].quantile(q=x).values
+            else:
+                emp = df_obs[variable].loc[mask].quantile(q=x).values
 
-            axs[0].plot(emp, x, ".", color=colors[i], label=label_)
+            axs[0].plot(emp, x, ".", color=colors[i], label=label_ + "-empirical")
 
             axs[1].plot(
-                emp[1:], np.diff(x) / np.diff(emp), ".", color=colors[i], label=label_
+                emp[1:],
+                np.diff(x) / np.diff(emp),
+                ".",
+                color=colors[i],
+                label=label_ + "-empirical",
             )
 
     axs[0].grid()

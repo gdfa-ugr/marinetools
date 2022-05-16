@@ -144,9 +144,9 @@ def marginalfit(df: pd.DataFrame, parameters: dict):
         df, parameters = stf.transform(df, parameters)
         parameters["transform"]["min"] = df.min().values[0] - 1e-2
         df -= parameters["transform"]["min"]
-        if parameters["piecewise"]:
-            for ind_, val_ in enumerate(parameters["ws_ps"]):
-                parameters["ws_ps"][ind_] = val_ - parameters["transform"]["min"]
+        # if parameters["piecewise"]:
+        #     for ind_, val_ in enumerate(parameters["ws_ps"]):
+        #         parameters["ws_ps"][ind_] = val_ - parameters["transform"]["min"]
 
     # Scale and shift time series for ensuring the use of any PM
     parameters["range"] = float((df.max() - df.min()).values[0])
@@ -154,9 +154,9 @@ def marginalfit(df: pd.DataFrame, parameters: dict):
         if parameters["range"] > 10:
             df = df / (parameters["range"] / 3)
             parameters["scale"] = parameters["range"] / 3
-            if parameters["piecewise"]:
-                for ind_, val_ in enumerate(parameters["ws_ps"]):
-                    parameters["ws_ps"][ind_] = val_ / (parameters["range"] / 3)
+            # if parameters["piecewise"]:
+            #     for ind_, val_ in enumerate(parameters["ws_ps"]):
+            #         parameters["ws_ps"][ind_] = val_ / (parameters["range"] / 3)
 
     # Bound the variable with some reference values
     if parameters["circular"]:
@@ -619,6 +619,12 @@ def check_marginal_params(param: dict):
                 )
             )
             k += 1
+    elif not param["non_stat_analysis"]:
+        param["fix_percentiles"] = True
+        logger.info(
+            "{} - Percentiles are fixed. Fix_percentiles is set to True.".format(str(k))
+        )
+        k += 1
     else:
         param["fix_percentiles"] = False
 
