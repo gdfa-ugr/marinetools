@@ -253,3 +253,16 @@ def mkdir(path: str):
     if path != "":
         os.makedirs(path, exist_ok=True)
     return
+
+def moving(data, dur):
+     
+    n = len(data)
+    id_ = []
+    for k in range(0, n-dur+1):
+        idx = data.iloc[k:k+dur+1].idxmax()
+        if idx == data.index[k + int(dur/2)]:
+            # peaks.append(data.loc[idx])
+            id_.append(idx)
+ 
+    res_ = pd.DataFrame(data.loc[id_], index=id_)
+    return res_

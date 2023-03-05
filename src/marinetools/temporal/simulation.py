@@ -331,7 +331,7 @@ def simulation(
                     df[var_] = stf.ensemble_ppf(dfj, param, var_, param["TS"]["nodes"])
 
                     # Transformed timeserie
-                    if param[var_]["transform"]["make"]:
+                    if param[var_][model]["transform"]["make"]:
                         if "scale" in param:
                             df[var_] = df[var_] * param[var_]["scale"]
 

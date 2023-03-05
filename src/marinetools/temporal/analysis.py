@@ -262,8 +262,8 @@ def marginalfit(df: pd.DataFrame, parameters: dict):
             filename += "_" + str(parameters["fun"][i])
         filename += "_genpareto" * parameters["reduction"]
 
-        for i in parameters["ws_ps"]:
-            filename += "_" + str(i)
+        #for i in parameters["ws_ps"]:
+            #filename += "_" + str(i)
 
         filename += "_st_" * (not parameters["non_stat_analysis"])
         filename += "_nonst" * parameters["non_stat_analysis"]
@@ -277,8 +277,8 @@ def marginalfit(df: pd.DataFrame, parameters: dict):
             filename += "_" + str(parameters["basis_function"]["degree"])
         filename += "_" + parameters["optimization"]["method"]
 
-        filename = parameters["folder_name"] + filename
-        parameters["file_name"] = filename
+    filename = parameters["folder_name"] + parameters['file_name']
+    parameters["file_name"] = filename
 
     save.to_json(parameters, parameters["file_name"])
 
@@ -632,8 +632,8 @@ def check_marginal_params(param: dict):
 
     if not "folder_name" in param.keys():
         param["folder_name"] = "marginalfit/"
-    else:
-        param["folder_name"] += "/marginalfit/"
+    #else:
+        #param["folder_name"] += "/marginalfit/"
 
     if not "scale-shift" in param.keys():
         param["scale-shift"] = True
@@ -754,7 +754,8 @@ def look_models(data, variable, percentiles=[1], fname="models_out", funcs="natu
     results.replace(0, "-", inplace=True)
 
     # Save to a xlsx file
-    save.to_xlsx(results, fname)
+    #save.to_xlsx(results, fname)
+    results.to_excel(fname)
 
     return results
 
@@ -776,7 +777,7 @@ def gaps(data, variables, fname="gaps", buoy=False):
 
     if not buoy:
         columns_ = [
-            "Cadency (hr)",
+            "Cadency (min)",
             "Accuracy*",
             "Period",
             "No. years",
@@ -786,7 +787,7 @@ def gaps(data, variables, fname="gaps", buoy=False):
         ]
     else:
         columns_ = [
-            "Cadency (hr)",
+            "Cadency (min)",
             "Accuracy*",
             "Period",
             "No. years",
@@ -814,12 +815,12 @@ def gaps(data, variables, fname="gaps", buoy=False):
             dt = 0
         acc = st.mode(np.diff(dt_nan.sort_values().unique()))[0]
 
-        tbl_gaps.loc[i, "Cadency (hr)"] = np.round(st.mode(dt0)[0] * 60, decimals=2)
+        tbl_gaps.loc[i, "Cadency (min)"] = np.round(st.mode(dt0)[0] * 60, decimals=2)
         tbl_gaps.loc[i, "Accuracy*"] = np.round(acc, decimals=2)
         tbl_gaps.loc[i, "Period"] = str(dt_nan.index[0]) + "-" + str(dt_nan.index[-1])
         tbl_gaps.loc[i, "No. years"] = dt_nan.index[-1].year - dt_nan.index[0].year
         tbl_gaps.loc[i, "Gaps (%)"] = np.round(
-            np.sum(dt) / np.float(data[i].shape[0]) * 100, decimals=2
+            np.sum(dt) / float(data[i].shape[0]) * 100, decimals=2
         )
         tbl_gaps.loc[i, "Med. gap (hr)"] = np.round(np.median(dt), decimals=2)
         tbl_gaps.loc[i, "Max. gap (hr)"] = np.round(np.max(dt), decimals=2)
@@ -832,7 +833,8 @@ def gaps(data, variables, fname="gaps", buoy=False):
     if not fname:
         logger.info(tbl_gaps)
     else:
-        save.to_xlsx(tbl_gaps, fname)
+        #save.to_xlsx(tbl_gaps, fname)
+        tbl_gaps.to_excel(fname)
 
     return tbl_gaps
 
@@ -1111,7 +1113,7 @@ def check_dependencies_params(param: dict):
         param["mvar"] = None
 
     if not "save_z" in param.keys():
-        param["save_z"] == False
+        param["save_z"] = False
 
     logger.info(
         "==============================================================================\n"
@@ -1238,7 +1240,10 @@ def varfit_OLS(y, z):
 
     # aic = df['dim']*np.log(np.sum(np.abs(y - np.dot(df['B'], z)))) + 2*nel
     # Compute the BIC
-    bic = -2 * llf + np.log(np.size(y)) * np.size(np.hstack((df["B"], df["Q"])))
+    if df["dim"] == 1:
+        bic = -2 * llf + np.log(np.size(y)) * np.size(np.hstack((df["B"][0], df["Q"])))
+    else:
+        bic = -2 * llf + np.log(np.size(y)) * np.size(np.hstack((df["B"], df["Q"])))
 
     return df, bic, R2adj.tolist()
 
@@ -1257,7 +1262,7 @@ def ensemble_dt(models: dict, percentiles="equally"):
     # Initialize matrices
     B, Q = [], []
     # Read the parameter of every ensemble model
-    for model_ in models.keys:
+    for model_ in models.keys():
         df_dt = read.rjson(models[model_], "td")
         B.append(df_dt["B"])
         Q.append(df_dt["Q"])

@@ -170,7 +170,7 @@ def storm_timeseries(
         if isinstance(df_obs, dict):
             for key in df_obs.keys():
                 ax[i].plot(
-                    df_obs[key][j], ".", ms=2, alpha=0.5, label=key.split("_")[0]
+                    df_obs[key][j], ".", ms=2, alpha=0.5, label=key.split("_")[1]
                 )
             # ax[i].set_xlim([df_obs[key].index[0], df_obs[key].index[-1]])
         else:
@@ -284,15 +284,15 @@ def plot_spectra(
     if ax is None:
         _, ax = plt.subplots(figsize=(8, 6))
     if semilog:
-        ax.semilogy(data["psd"], label=label)
+        ax.semilogy(data[0], label=label)
     else:
-        ax.plot(data["psd"], label=label)
+        ax.plot(data[0], label=label)
     ax.set_xlabel(xlabel)
     if label == "LombScargle":
         ax.set_ylabel("Normalized Lombscargle Periodogram")
     else:
         ax.set_ylabel("Fast Fourier Transform")
-    ax.plot(data.loc[data["significant"], "psd"], "bo", label="significant")
+    ax.plot(data[1].index, data[1]['PSD'], "bo", label="significant")
 
     # for index in data.loc[data['significant'], 'psd'].index:
     #     ax.annotate('{:.2f}'.format(index), (index, data.loc[index, 'psd']), textcoords="offset points", xytext=(0,5), ha='center')
@@ -675,6 +675,28 @@ def look_models(data, variable, params, num=10, fname=None):
     return ax
 
 
+def look_models_pdf(data, var_, res_, num=10, fname=None):
+    """ Plot the model fit and the data histogram
+    """
+    plt.figure()
+    n, _, _ = plt.hist(data.values, 25, density=True, label='data')
+ 
+    x = np.linspace(data.min(), data.max(), 1000)
+    
+    num = np.min([num, len(res_)])
+    for i in range(num):
+        dist_ = getattr(st, res_.iloc[i, 0])
+        params = res_.iloc[i, 2:dist_.numargs + 4].values
+        plt.plot(x, dist_.pdf(x, *params), label=res_.iloc[i, 0].replace('_', ' '))
+    plt.xlabel(labels(var_))
+    plt.ylabel('prob')
+    plt.legend(ncol=2)
+    plt.ylim([0, np.max(n) + 0.1])
+    show(fname)
+        
+    return
+
+
 def crosscorr(xy, xys, variable, lags=48, fname=None):
     """Plots the cross-correlation of variables xy and xys
 
@@ -802,7 +824,7 @@ def bivariate_ensemble_pdf(
         ax[row, column].contourf(xo, yo, Ho, alpha=0.25, levels=np.append(0, levels))
         CS = ax[row, column].contour(x, y, H, levels=levels)
         ax[row, column].clabel(CS, inline=1, fontsize=10)
-        ax[row, column].set_title(key.split("_")[0])
+        ax[row, column].set_title(key.split("_")[1])
         ax[row, column].grid(True)
         if column == 0:
             ax[row, column].set_ylabel(labels(varp[1]))
