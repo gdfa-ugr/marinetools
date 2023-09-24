@@ -6,6 +6,8 @@ import pandas as pd
 import scipy.stats as st
 from marinetools.temporal import analysis
 from marinetools.temporal.fdist import statistical_fit as stf
+from scipy.optimize import minimize
+from scipy.interpolate import Rbf
 
 
 def nonstationary_ecdf(
@@ -266,3 +268,101 @@ def moving(data, dur):
  
     res_ = pd.DataFrame(data.loc[id_], index=id_)
     return res_
+
+def scaler(data, method="MinMaxScaler", transform=True, scale=False):
+    """[summary]
+
+    Args:
+        data ([type]): [description]
+        method (str, optional): [description]. Defaults to "MinMaxScaler".
+        transform (bool, optional): [description]. Defaults to True.
+
+    Returns:
+        [type]: [description]
+    """
+    from sklearn.preprocessing import MinMaxScaler, RobustScaler, StandardScaler
+
+    algorithms = {
+        "MinMaxScaler": MinMaxScaler(),
+        "StandardScaler": StandardScaler(),
+        "RobustScaler": RobustScaler(),
+    }
+
+    np_array = False
+    if not isinstance(data, pd.DataFrame):
+        np_array = True
+
+    if transform & (not scale):
+        scale = algorithms[method].fit(data)
+
+    if not transform:
+        if np_array:
+            transformed_data = scale.inverse_transform(data)
+        else:
+            transformed_data = pd.DataFrame(
+                scale.inverse_transform(data), index=data.index, columns=data.columns
+            )
+            scale = None
+    else:
+        if np_array:
+            transformed_data = scale.transform(data)
+        else:
+            transformed_data = pd.DataFrame(
+                scale.transform(data), index=data.index, columns=data.columns
+            )
+
+    return transformed_data, scale
+
+
+def optimize_rbf_epsilon(coords, data, num, method="gaussian", smooth=0.5, eps0=1):
+    """[summary]
+
+    Args:
+        coords ([type]): [description]
+        data ([type]): [description]
+        num ([type]): [description]
+        method (str, optional): [description]. Defaults to 'gaussian'.
+        smooth (float, optional): [description]. Defaults to 0.5.
+        eps0 (int, optional): [description]. Defaults to 1.
+
+    Returns:
+        [type]: [description]
+    """
+
+    res_ = minimize(
+        rmse_rbf,
+        eps0,
+        args=(coords, data, num, method, smooth),
+        bounds=[[1e-9, 1e5]],
+        method="SLSQP",
+        options={"ftol": 1e-7, "eps": 1e-4, "maxiter": 1e4},
+    )
+    # print(res_)
+    return res_["x"]
+
+
+def rmse_rbf(eps0, coords, data, num, method, smooth):
+    """[summary]
+
+    Args:
+        eps0 ([type]): [description]
+        coords ([type]): [description]
+        data ([type]): [description]
+        num ([type]): [description]
+        method ([type]): [description]
+        smooth ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
+    func = Rbf(
+        *coords[:num, :].T, data[:num], function=method, smooth=smooth, epsilon=eps0
+    )
+    Vdt = func(*coords[num:, :].T)
+
+    # func = Rbf(coords[:num, :], data[:num, :], function=method, smooth=smooth, epsilon=eps0)
+    # Vdt = func(coords[num:, :])
+    error = np.sqrt(1 / len(Vdt) * np.sum((Vdt - data[num:]) ** 2))
+    # error = 1/len(Vdt)*np.sum(np.abs(Vdt - data[num:]))
+    # print(eps0, error)
+    return error
