@@ -1,6 +1,7 @@
 import numpy as np
 from marinetools.utils import auxiliar
 from scipy.interpolate import Rbf, griddata
+import pandas as pd
 
 
 def class_storm_seasons(df_vars_ciclos, type_: str = "WSSF"):
